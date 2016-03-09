@@ -48,7 +48,6 @@ class MeasurableSettings extends Settings
     {
         $typeManager = new TypeManager();
         $type = $typeManager->getType($this->idType);
-        $type->configureMeasurableSettings($this);
 
         /**
          * This event is posted when generating settings for a Measurable (website). You can add any Measurable settings

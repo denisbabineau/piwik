@@ -8,10 +8,12 @@
 
 namespace Piwik\Plugins\SitesManager\tests\Integration;
 
+use Piwik\Measurable\MeasurableSetting;
+use Piwik\Measurable\MeasurableSettings;
 use Piwik\Piwik;
 use Piwik\Plugin;
 use Piwik\Plugins\MobileAppMeasurable;
-use Piwik\Plugins\MobileAppMeasurable\tests\Framework\Mock\Type;
+use Piwik\Plugins\MobileAppMeasurable\Type;
 use Piwik\Plugins\SitesManager\API;
 use Piwik\Plugins\SitesManager\Model;
 use Piwik\Plugins\UsersManager\API as APIUsersManager;
@@ -1210,7 +1212,26 @@ class ApiTest extends IntegrationTestCase
     {
         return array(
             'Piwik\Access' => new FakeAccess(),
-            'Piwik\Plugins\MobileAppMeasurable\Type' => new Type()
+            'observers.global' => \DI\add(array(
+                // removes port from all URLs to the test Piwik server so UI tests will pass no matter
+                // what port is used
+                array('Measurable.initMeasurableSettings', function (MeasurableSettings $settings, Type $type) {
+                    if (!$type->isType('mobileapp')) {
+                        return;
+                    }
+                    $appId = new MeasurableSetting('app_id', 'App-ID');
+                    $appId->validate = function ($value) {
+                        if (strlen($value) > 100) {
+                            throw new \Exception('Only 100 characters are allowed');
+                        }
+                    };
+
+                    if (!$settings->getSetting('app_id')) {
+                        $settings->addSetting($appId);
+                    }
+
+                })
+            )),
         );
     }
 

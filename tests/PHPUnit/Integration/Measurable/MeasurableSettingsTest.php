@@ -10,7 +10,6 @@ namespace Piwik\Tests\Integration\Measurable;
 
 use Piwik\Db;
 use Piwik\Plugin;
-use Piwik\Plugins\MobileAppMeasurable\tests\Framework\Mock\Type;
 use Piwik\Plugins\MobileAppMeasurable\Type as MobileAppType;
 use Piwik\Measurable\MeasurableSetting;
 use Piwik\Measurable\MeasurableSettings;
@@ -105,7 +104,25 @@ class MeasurableSettingsTest extends IntegrationTestCase
     {
         return array(
             'Piwik\Access' => new FakeAccess(),
-            'Piwik\Plugins\MobileAppMeasurable\Type' => new Type()
+            'observers.global' => \DI\add(array(
+
+                // removes port from all URLs to the test Piwik server so UI tests will pass no matter
+                // what port is used
+                array('Measurable.initMeasurableSettings', function (MeasurableSettings $settings) {
+                    $appId = new MeasurableSetting('app_id', 'App-ID');
+                    $appId->validate = function ($value) {
+                        if (strlen($value) > 100) {
+                            throw new \Exception('Only 100 characters are allowed');
+                        }
+                    };
+
+                    if (!$settings->getSetting('app_id')) {
+                        $settings->addSetting($appId);
+                    }
+
+                })
+            )),
+
         );
     }
 }
