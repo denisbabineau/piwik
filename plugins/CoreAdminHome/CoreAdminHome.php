@@ -11,7 +11,7 @@ namespace Piwik\Plugins\CoreAdminHome;
 use Piwik\Db;
 use Piwik\Piwik;
 use Piwik\ProxyHttp;
-use Piwik\Settings\UserSetting;
+use Piwik\Settings\Plugin\UserSetting;
 
 /**
  *

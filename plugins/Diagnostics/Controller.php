@@ -10,6 +10,7 @@ namespace Piwik\Plugins\Diagnostics;
 
 use Piwik\Config;
 use Piwik\Piwik;
+use Piwik\Plugin\SettingsProvider;
 use Piwik\View;
 use Piwik\Settings;
 
@@ -30,7 +31,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        $allSettings = Settings\Manager::getAllPluginSettings();
+        $settings = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
+        $allSettings = $settings->getAllPluginsSettings();
 
         $configValues = $this->configReader->getConfigValuesFromFiles();
         $configValues = $this->configReader->addConfigValuesFromPluginSettings($configValues, $allSettings);

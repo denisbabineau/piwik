@@ -6,13 +6,10 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
  */
-namespace Piwik\Plugin;
+namespace Piwik\Settings;
 
 use Piwik\Piwik;
-use Piwik\Settings\Setting;
-use Piwik\Settings\Storage;
-use Piwik\Settings\StorageInterface;
-use Piwik\Tracker\SettingsStorage;
+use Piwik\Settings\Storage\Storage;
 
 /**
  * Base class of all plugin settings providers. Plugins that define their own configuration settings
@@ -48,33 +45,25 @@ abstract class Settings
      */
     private $settings = array();
 
-    private $introduction;
     protected $pluginName;
 
     /**
-     * @var StorageInterface
+     * @var Storage
      */
     protected $storage;
 
-    /**
-     * Constructor.
-     */
-    public function __construct($pluginName = null)
+    public function __construct()
     {
-        if (!empty($pluginName)) {
-            $this->pluginName = $pluginName;
-        } else {
+        if (!$this->pluginName) {
             $classname = get_class($this);
             $parts     = explode('\\', $classname);
 
-            if (3 <= count($parts)) {
+            if (3 > count($parts)) {
                 $this->pluginName = $parts[2];
             }
+
+            throw new \Exception('Plugin Settings must have a plugin name specified, could not detect plugin name');
         }
-
-        $this->storage = Storage\Factory::make($this->pluginName);
-
-        $this->init();
     }
 
     /**
@@ -104,31 +93,11 @@ abstract class Settings
     abstract protected function init();
 
     /**
-     * Sets the text used to introduce this plugin's settings in the _Plugin Settings_ page.
-     *
-     * @param string $introduction
-     */
-    protected function setIntroduction($introduction)
-    {
-        $this->introduction = $introduction;
-    }
-
-    /**
-     * Returns the introduction text for this plugin's settings.
-     *
-     * @return string
-     */
-    public function getIntroduction()
-    {
-        return $this->introduction;
-    }
-
-    /**
      * Returns the settings that can be displayed for the current user.
      *
      * @return Setting[]
      */
-    public function getSettingsForCurrentUser()
+    public function getSettingsWritableByCurrentUser()
     {
         $settings = array_filter($this->getSettings(), function (Setting $setting) {
             return $setting->isWritableByCurrentUser();
@@ -191,7 +160,6 @@ abstract class Settings
         }
 
         $this->setDefaultTypeAndFieldIfNeeded($setting);
-        $this->addValidatorIfNeeded($setting);
 
         $setting->setStorage($this->storage);
         $setting->setPluginName($this->pluginName);
@@ -205,35 +173,17 @@ abstract class Settings
     public function save()
     {
         $this->storage->save();
-
-        SettingsStorage::clearCache();
-
-        /**
-         * Triggered after a plugin settings have been updated.
-         *
-         * **Example**
-         *
-         *     Piwik::addAction('Settings.MyPlugin.settingsUpdated', function (Settings $settings) {
-         *         $value = $settings->someSetting->getValue();
-         *         // Do something with the new setting value
-         *     });
-         *
-         * @param Settings $settings The plugin settings object.
-         */
-        Piwik::postEvent(sprintf('Settings.%s.settingsUpdated', $this->pluginName), array($this));
     }
 
     /**
-     * Removes all settings for this plugin from the database. Useful when uninstalling
-     * a plugin.
+     * Deletes all saved settings for this plugin from the database. Useful when uninstalling
+     * a plugin. Requires super user access.
      */
-    public function removeAllPluginSettings()
+    public function deleteSavedSettings()
     {
         Piwik::checkUserHasSuperUserAccess();
 
         $this->storage->deleteAllValues();
-
-        SettingsStorage::clearCache();
     }
 
     private function getDefaultType($controlType)
@@ -279,30 +229,4 @@ abstract class Settings
         }
     }
 
-    private function addValidatorIfNeeded(Setting $setting)
-    {
-        if (!is_null($setting->validate) || is_null($setting->availableValues)) {
-            return;
-        }
-
-        $pluginName = $this->pluginName;
-
-        $setting->validate = function ($value) use ($setting, $pluginName) {
-
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingsValueNotAllowed',
-                array($setting->title, $pluginName));
-
-            if (is_array($value) && $setting->type == Settings::TYPE_ARRAY) {
-                foreach ($value as $val) {
-                    if (!array_key_exists($val, $setting->availableValues)) {
-                        throw new \Exception($errorMsg);
-                    }
-                }
-            } else {
-                if (!array_key_exists($value, $setting->availableValues)) {
-                    throw new \Exception($errorMsg);
-                }
-            }
-        };
-    }
 }

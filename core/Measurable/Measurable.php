@@ -17,16 +17,4 @@ use Piwik\Site;
  */
 class Measurable extends Site
 {
-
-    public function getSettingValue($name)
-    {
-        $settings = new MeasurableSettings($this->id, $this->getType());
-        $setting  = $settings->getSetting($name);
-
-        if (!empty($setting)) {
-            return $setting->getValue(); // Calling `getValue` makes sure we respect read permission of this setting
-        }
-
-        throw new Exception(sprintf('Setting %s does not exist', $name));
-    }
 }

@@ -7,7 +7,7 @@
  *
  */
 
-namespace Piwik\Settings\Storage;
+namespace Piwik\Settings\Storage\Backend;
 
 use Piwik\Settings\Storage;
 
@@ -17,18 +17,30 @@ use Piwik\Settings\Storage;
  *
  * @api
  */
-class StaticStorage extends Storage
+class Null implements BackendInterface
 {
+    private $storageId;
 
-    protected function loadSettings()
+    public function __construct($storageId)
+    {
+        $this->storageId = $storageId;
+    }
+
+    public function load()
     {
         return array();
     }
 
-    /**
-     * Saves (persists) the current setting values in the database.
-     */
-    public function save()
+    public function getStorageId()
+    {
+        return $this->storageId;
+    }
+
+    public function delete()
+    {
+    }
+
+    public function save($values)
     {
     }
 }

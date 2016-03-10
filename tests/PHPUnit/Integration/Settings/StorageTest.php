@@ -24,6 +24,11 @@ class StorageTest extends IntegrationTestCase
     protected $storage;
 
     /**
+     * @var Storage\Backend\BackendInterface
+     */
+    protected $backend;
+
+    /**
      * @var Setting
      */
     protected $setting;
@@ -33,6 +38,8 @@ class StorageTest extends IntegrationTestCase
         parent::setUp();
 
         $this->setSuperUser();
+
+        $this->backend = new Storage\Backend\Plugin('PluginName');
         $this->storage = $this->buildStorage();
         $this->setting = $this->buildUserSetting('myname', 'My Name');
     }
@@ -68,7 +75,7 @@ class StorageTest extends IntegrationTestCase
     {
         $this->assertNotDbConnectionCreated();
 
-        $this->storage->deleteValue($this->setting, 5);
+        $this->storage->deleteValue($this->setting);
 
         $this->assertDbConnectionCreated();
     }
@@ -146,17 +153,17 @@ class StorageTest extends IntegrationTestCase
 
     public function test_getOptionKey_shouldContainThePluginName()
     {
-        $this->assertEquals('Plugin_PluginName_Settings', $this->storage->getOptionKey());
+        $this->assertEquals('Plugin_PluginName_Settings', $this->backend->getStorageId());
     }
 
     protected function buildStorage()
     {
-        return new Storage('PluginName');
+        return new Storage($this->backend);
     }
 
     protected function getValueFromOptionTable()
     {
-        return Option::get($this->storage->getOptionKey());
+        return Option::get($this->backend->getStorageId());
     }
 
 }

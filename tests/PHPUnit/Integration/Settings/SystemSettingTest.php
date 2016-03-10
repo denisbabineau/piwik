@@ -11,7 +11,7 @@ namespace Piwik\Tests\Integration\Settings;
 use Piwik\Config;
 use Piwik\Db;
 use Piwik\Plugin\Settings;
-use Piwik\Settings\SystemSetting;
+use Piwik\Settings\Plugin\SystemSetting;
 
 /**
  * @group PluginSettings

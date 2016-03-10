@@ -19,7 +19,7 @@ use Piwik\Widget\WidgetContainerConfig;
 /**
  * Get widgets that are defined by plugins.
  */
-class Widgets
+class WidgetsProvider
 {
     /**
      * @var Plugin\Manager

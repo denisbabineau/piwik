@@ -15,7 +15,7 @@ use Piwik\SettingsServer;
 use Piwik\Tests\Integration\Settings\CorePluginTestSettings;
 use Piwik\Tests\Integration\Settings\IntegrationTestCase;
 use Piwik\Tracker\Cache;
-use Piwik\Tracker\SettingsStorage;
+use Piwik\Settings\Storage\Cache as StorageCache;
 
 /**
  * @group PluginSettings
@@ -122,7 +122,7 @@ class SettingsTest extends IntegrationTestCase
         SettingsServer::setIsNotTrackerApiRequest();
 
         $storage = $setting->getStorage();
-        $this->assertTrue($storage instanceof SettingsStorage);
+        $this->assertTrue($storage instanceof StorageCache);
     }
 
     /**
@@ -181,7 +181,7 @@ class SettingsTest extends IntegrationTestCase
         $this->addSystemSetting('mysystemsetting4', 'mytitle4');
         $userSetting = $this->addUserSetting('myusersetting1', 'mytitle5');
 
-        $this->assertEquals(array('myusersetting1' => $userSetting), $this->settings->getSettingsForCurrentUser());
+        $this->assertEquals(array('myusersetting1' => $userSetting), $this->settings->getSettingsWritableByCurrentUser());
 
         // but all of them should be available via getSettings()
         $this->assertCount(5, $this->settings->getSettings());
@@ -199,7 +199,7 @@ class SettingsTest extends IntegrationTestCase
         $this->addUserSetting('myusersetting1', 'mytitle5');
 
         $expected = array('myusersetting2', 'myusersetting1', 'mysystemsetting1', 'mysystemsetting2', 'mysystemsetting3', 'mysystemsetting4');
-        $this->assertEquals($expected, array_keys($this->settings->getSettingsForCurrentUser()));
+        $this->assertEquals($expected, array_keys($this->settings->getSettingsWritableByCurrentUser()));
     }
 
     public function test_save_shouldSaveAllValues()
@@ -251,7 +251,7 @@ class SettingsTest extends IntegrationTestCase
         $this->assertArrayNotHasKey('testSetting', Cache::getCacheGeneral());
     }
 
-    public function test_removeAllPluginSettings_shouldRemoveAllSettings()
+    public function test_deleteSavedSettings_shouldRemoveAllSettings()
     {
         $this->setSuperUser();
 
@@ -262,7 +262,7 @@ class SettingsTest extends IntegrationTestCase
         $this->addUserSetting('myusersetting1', 'mytitle5')->setValue('55555');
         $this->settings->save();
 
-        $this->settings->removeAllPluginSettings();
+        $this->settings->deleteSavedSettings();
 
         $verifySettings = $this->createSettingsInstance();
 
@@ -289,22 +289,22 @@ class SettingsTest extends IntegrationTestCase
      * @expectedException \Exception
      * @expectedExceptionMessage checkUserHasSuperUserAccess Fake exception
      */
-    public function test_removeAllPluginSettings_shouldThrowException_InCaseUserIsNotSuperUser()
+    public function test_deleteSavedSettings_shouldThrowException_InCaseUserIsNotSuperUser()
     {
         $this->setUser();
 
-        $this->settings->removeAllPluginSettings();
+        $this->settings->deleteSavedSettings();
     }
 
     /**
      * @expectedException \Exception
      * @expectedExceptionMessage checkUserHasSuperUserAccess Fake exception
      */
-    public function test_removeAllPluginSettings_shouldThrowException_InCaseAnonymousUser()
+    public function test_deleteSavedSettings_shouldThrowException_InCaseAnonymousUser()
     {
         $this->setAnonymousUser();
 
-        $this->settings->removeAllPluginSettings();
+        $this->settings->deleteSavedSettings();
     }
 
     public function test_userSetting_shouldGenerateDifferentKey_ThenSystemSetting()
@@ -353,7 +353,7 @@ class SettingsTest extends IntegrationTestCase
         $user->setUserLogin($user3Login);
         $this->assertSettingHasValue($user, '333');
 
-        $this->settings->removeAllPluginSettings();
+        $this->settings->deleteSavedSettings();
 
         $user->setUserLogin($user1Login);
         $this->assertSettingHasValue($user, null);

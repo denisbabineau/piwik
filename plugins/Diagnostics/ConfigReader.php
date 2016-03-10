@@ -151,7 +151,7 @@ class ConfigReader
             $configs[$pluginName] = array();
 
             foreach ($pluginSetting->getSettings() as $setting) {
-                if ($setting instanceof PiwikSettings\SystemSetting && $setting->isReadableByCurrentUser()) {
+                if ($setting instanceof PiwikSettings\Setting\SystemSetting && $setting->isWritableByCurrentUser()) {
                     $name = $setting->getName();
 
                     $description = '';

@@ -16,7 +16,7 @@ use Piwik\Cache as PiwikCache;
 /**
  * Get reports that are defined by plugins.
  */
-class Reports
+class ReportsProvider
 {
 
     /**

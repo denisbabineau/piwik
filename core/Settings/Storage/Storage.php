@@ -7,18 +7,18 @@
  *
  */
 
-namespace Piwik\Settings;
+namespace Piwik\Settings\Storage;
 
-use Piwik\Option;
+use Piwik\Settings\Setting;
+use Piwik\Settings\Storage\Backend;
 
 /**
- * Base setting type class.
- *
- * @api
+ * A storage stores values for multiple settings. Storing multiple settings here saves having to do
+ * a "get" for each individual setting. A storage is usually stared between all individual setting instances
+ * within a plugin.
  */
-class Storage implements StorageInterface
+class Storage
 {
-
     /**
      * Array containing all plugin settings values: Array( [setting-key] => [setting-value] ).
      *
@@ -29,11 +29,19 @@ class Storage implements StorageInterface
     // for lazy loading of setting values
     private $settingValuesLoaded = false;
 
-    private $pluginName;
+    /**
+     * @var Backend\BackendInterface
+     */
+    private $backend;
 
-    public function __construct($pluginName)
+    public function __construct(Backend\BackendInterface $backend)
     {
-        $this->pluginName = $pluginName;
+        $this->backend = $backend;
+    }
+
+    public function getBackend()
+    {
+        return $this->backend;
     }
 
     /**
@@ -43,7 +51,9 @@ class Storage implements StorageInterface
     {
         $this->loadSettingsIfNotDoneYet();
 
-        Option::set($this->getOptionKey(), serialize($this->settingsValues));
+        $this->backend->save($this->settingsValues);
+
+        $this->clearBackendCache();
     }
 
     /**
@@ -52,15 +62,11 @@ class Storage implements StorageInterface
      */
     public function deleteAllValues()
     {
-        $this->deleteSettingsFromStorage();
+        $this->backend->delete();
+        $this->clearBackendCache();
 
         $this->settingsValues = array();
         $this->settingValuesLoaded = false;
-    }
-
-    protected function deleteSettingsFromStorage()
-    {
-        Option::delete($this->getOptionKey());
     }
 
     /**
@@ -120,9 +126,9 @@ class Storage implements StorageInterface
         }
     }
 
-    public function getOptionKey()
+    private function clearBackendCache()
     {
-        return 'Plugin_' . $this->pluginName . '_Settings';
+        Backend\Cache::clearCache();
     }
 
     private function loadSettingsIfNotDoneYet()
@@ -132,17 +138,6 @@ class Storage implements StorageInterface
         }
 
         $this->settingValuesLoaded = true;
-        $this->settingsValues = $this->loadSettings();
-    }
-
-    protected function loadSettings()
-    {
-        $values = Option::get($this->getOptionKey());
-
-        if (!empty($values)) {
-            return unserialize($values);
-        }
-
-        return array();
+        $this->settingsValues = $this->backend->load();
     }
 }

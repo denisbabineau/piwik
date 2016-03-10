@@ -8,8 +8,8 @@
 
 namespace Piwik\Plugins\ExampleSettingsPlugin;
 
-use Piwik\Settings\SystemSetting;
-use Piwik\Settings\UserSetting;
+use Piwik\Settings\Plugin\SystemSetting;
+use Piwik\Settings\Plugin\UserSetting;
 
 /**
  * Defines Settings for ExampleSettingsPlugin.
@@ -19,7 +19,7 @@ use Piwik\Settings\UserSetting;
  * $settings->autoRefresh->getValue();
  * $settings->metric->getValue();
  */
-class Settings extends \Piwik\Plugin\Settings
+class Settings extends \Piwik\Settings\Settings
 {
     /** @var UserSetting */
     public $autoRefresh;
@@ -44,8 +44,6 @@ class Settings extends \Piwik\Plugin\Settings
 
     protected function init()
     {
-        $this->setIntroduction('Here you can specify the settings for this plugin.');
-
         // User setting --> checkbox converted to bool
         $this->createAutoRefreshSetting();
 
@@ -116,7 +114,6 @@ class Settings extends \Piwik\Plugin\Settings
         $this->metric->introduction  = 'Only Super Users can change the following settings:';
         $this->metric->description   = 'Choose the metric that should be displayed in the browser tab';
         $this->metric->defaultValue  = 'nb_visits';
-        $this->metric->readableByCurrentUser = true;
 
         $this->addSetting($this->metric);
     }
@@ -129,7 +126,6 @@ class Settings extends \Piwik\Plugin\Settings
         $this->browsers->availableValues  = array('firefox' => 'Firefox', 'chromium' => 'Chromium', 'safari' => 'safari');
         $this->browsers->description   = 'The value will be only displayed in the following browsers';
         $this->browsers->defaultValue  = array('firefox', 'chromium', 'safari');
-        $this->browsers->readableByCurrentUser = true;
 
         $this->addSetting($this->browsers);
     }
@@ -137,7 +133,6 @@ class Settings extends \Piwik\Plugin\Settings
     private function createDescriptionSetting()
     {
         $this->description = new SystemSetting('description', 'Description for value');
-        $this->description->readableByCurrentUser = true;
         $this->description->uiControlType = static::CONTROL_TEXTAREA;
         $this->description->description   = 'This description will be displayed next to the value';
         $this->description->defaultValue  = "This is the value: \nAnother line";
@@ -148,7 +143,6 @@ class Settings extends \Piwik\Plugin\Settings
     private function createPasswordSetting()
     {
         $this->password = new SystemSetting('password', 'API password');
-        $this->password->readableByCurrentUser = true;
         $this->password->uiControlType = static::CONTROL_PASSWORD;
         $this->password->description   = 'Password for the 3rd API where we fetch the value';
         $this->password->transform     = function ($value) {

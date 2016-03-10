@@ -9,8 +9,8 @@
 namespace Piwik\Tests\Integration\Measurable\Settings;
 
 use Piwik\Db;
-use Piwik\Measurable\MeasurableSetting;
-use Piwik\Measurable\Settings\Storage;
+use Piwik\Settings\Measurable\MeasurableSetting;
+use Piwik\Settings\Storage\Storage;
 use Piwik\Settings\Setting;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;

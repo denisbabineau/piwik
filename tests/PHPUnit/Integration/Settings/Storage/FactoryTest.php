@@ -12,7 +12,7 @@ use Piwik\Settings\Storage;
 use Piwik\Settings\Storage\Factory;
 use Piwik\SettingsServer;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
-use Piwik\Tracker\SettingsStorage;
+use Piwik\Settings\Storage\Cache;
 
 /**
  * @group Tracker
@@ -26,7 +26,7 @@ class FactoryTest extends IntegrationTestCase
 
     public function test_make_shouldCreateDefaultInstance()
     {
-        $storage = Factory::make('PluginName');
+        $storage = Factory::make('plugin', 'PluginName');
         $this->assertTrue($storage instanceof Storage);
     }
 
@@ -34,27 +34,27 @@ class FactoryTest extends IntegrationTestCase
     {
         $storage = $this->makeTrackerInstance();
 
-        $this->assertTrue($storage instanceof SettingsStorage);
+        $this->assertTrue($storage->getBackend() instanceof Storage\Backend\Cache);
     }
 
     public function test_make_shouldPassThePluginNameToTheStorage()
     {
-        $storage = Factory::make('PluginName');
-        $this->assertEquals('Plugin_PluginName_Settings', $storage->getOptionKey());
+        $storage = Factory::make('plugin', 'PluginName');
+        $this->assertEquals('Plugin_PluginName_Settings', $storage->getBackend()->getStorageId());
     }
 
     public function test_make_shouldPassThePluginNameToTheSettingsStorage()
     {
         $storage = $this->makeTrackerInstance();
 
-        $this->assertEquals('Plugin_PluginName_Settings', $storage->getOptionKey());
+        $this->assertEquals('Plugin_PluginName_Settings', $storage->getBackend()->getStorageId());
     }
 
     private function makeTrackerInstance()
     {
         SettingsServer::setIsTrackerApiRequest();
 
-        $storage = Factory::make('PluginName');
+        $storage = Factory::make('plugin', 'PluginName');
 
         SettingsServer::setIsNotTrackerApiRequest();
 

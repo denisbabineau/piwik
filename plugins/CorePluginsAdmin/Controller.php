@@ -40,9 +40,15 @@ class Controller extends Plugin\ControllerAdmin
      */
     private $translator;
 
-    public function __construct(Translator $translator)
+    /**
+     * @var PluginsSettings
+     */
+    private $pluginsSettings;
+
+    public function __construct(Translator $translator, PluginsSettings $pluginsSettings)
     {
         $this->translator = $translator;
+        $this->pluginsSettings = $pluginsSettings;
 
         parent::__construct();
     }
@@ -251,7 +257,7 @@ class Controller extends Plugin\ControllerAdmin
         $view->otherUsersCount = count($users) - 1;
         $view->themeEnabled = \Piwik\Plugin\Manager::getInstance()->getThemeEnabled()->getPluginName();
 
-        $view->pluginNamesHavingSettings = $this->getPluginNamesHavingSettingsForCurrentUser();
+        $view->pluginNamesHavingSettings = $this->pluginsSettings->getPluginNamesHavingSystemSettings();
         $view->isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
         $view->isPluginsAdminEnabled = CorePluginsAdmin::isPluginsAdminEnabled();
 
@@ -432,7 +438,7 @@ class Controller extends Plugin\ControllerAdmin
             }
 
             $message = $this->translator->translate('CorePluginsAdmin_SuccessfullyActicated', array($pluginName));
-            if (SettingsManager::hasSystemPluginSettingsForCurrentUser($pluginName)) {
+            if ($this->pluginsSettings->hasSystemPluginSettingsForCurrentUser($pluginName)) {
                 $target   = sprintf('<a href="index.php%s#%s">',
                     Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreAdminHome', 'action' => 'adminPluginSettings')),
                     $pluginName);
@@ -505,11 +511,6 @@ class Controller extends Plugin\ControllerAdmin
         if ($redirectAfter) {
             Url::redirectToReferrer();
         }
-    }
-
-    private function getPluginNamesHavingSettingsForCurrentUser()
-    {
-        return SettingsManager::getPluginNamesHavingSystemSettings();
     }
 
     private function tryToRepairPiwik()

@@ -13,10 +13,20 @@ use Piwik\Menu\MenuAdmin;
 use Piwik\Menu\MenuTop;
 use Piwik\Menu\MenuUser;
 use Piwik\Piwik;
+use Piwik\Plugins\CorePluginsAdmin\PluginsSettings;
 use Piwik\Settings\Manager as SettingsManager;
 
 class Menu extends \Piwik\Plugin\Menu
 {
+    /**
+     * @var PluginsSettings
+     */
+    private $pluginsSettings;
+
+    public function __construct(PluginsSettings $pluginsSettings)
+    {
+        $this->pluginsSettings = $pluginsSettings;
+    }
 
     public function configureAdminMenu(MenuAdmin $menu)
     {
@@ -35,7 +45,7 @@ class Menu extends \Piwik\Plugin\Menu
             }
         }
 
-        if (Piwik::hasUserSuperUserAccess() && SettingsManager::hasSystemPluginsSettingsForCurrentUser()) {
+        if (Piwik::hasUserSuperUserAccess() && $this->pluginsSettings->hasSystemPluginsSettingsForCurrentUser()) {
             $menu->addSettingsItem('CoreAdminHome_PluginSettings',
                                    $this->urlForAction('adminPluginSettings'),
                                    $order = 7);
@@ -63,7 +73,7 @@ class Menu extends \Piwik\Plugin\Menu
                 $this->urlForAction('trackingCodeGenerator'),
                 $order = 20);
 
-            if (SettingsManager::hasUserPluginsSettingsForCurrentUser()) {
+            if ($this->pluginsSettings->hasUserPluginsSettingsForCurrentUser()) {
                 $menu->addPersonalItem('CoreAdminHome_PluginSettings',
                     $this->urlForAction('userPluginSettings'),
                     $order = 15);

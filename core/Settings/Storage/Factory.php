@@ -9,20 +9,27 @@
 
 namespace Piwik\Settings\Storage;
 
-use Piwik\Settings\Storage;
 use Piwik\SettingsServer;
-use Piwik\Tracker\SettingsStorage;
 
 class Factory
 {
-    public static function make($pluginName)
+    public static function make($type, $id)
     {
-        if (SettingsServer::isTrackerApiRequest()) {
-            $storage = new SettingsStorage($pluginName);
-        } else {
-            $storage = new Storage($pluginName);
+        switch ($type) {
+            case 'plugin':
+                $backend = new Backend\Plugin($id);
+                break;
+            case 'measurable':
+                $backend = new Backend\Measurable($id);
+                break;
+            default:
+                $backend = new Backend\Null($id);
         }
 
-        return $storage;
+        if (SettingsServer::isTrackerApiRequest()) {
+            $backend = new Backend\Cache($backend);
+        }
+
+        return new Storage($backend);
     }
 }

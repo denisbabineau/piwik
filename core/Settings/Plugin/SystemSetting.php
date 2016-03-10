@@ -7,10 +7,11 @@
  *
  */
 
-namespace Piwik\Settings;
+namespace Piwik\Settings\Plugin;
 
 use Piwik\Config;
 use Piwik\Piwik;
+use Piwik\Settings\Setting;
 
 /**
  * Describes a system wide setting. Only the Super User can change this type of setting and
@@ -18,25 +19,10 @@ use Piwik\Piwik;
  *
  * See {@link \Piwik\Plugin\Settings}.
  *
- *
  * @api
  */
 class SystemSetting extends Setting
 {
-    /**
-     * By default the value of the system setting is only readable by SuperUsers but someone the value should be
-     * readable by everyone.
-     *
-     * @var bool
-     * @since 2.4.0
-     */
-    public $readableByCurrentUser = false;
-
-    /**
-     * @var bool
-     */
-    private $writableByCurrentUser = false;
-
     /**
      * Constructor.
      *
@@ -47,8 +33,17 @@ class SystemSetting extends Setting
     {
         parent::__construct($name, $title);
 
-        $this->writableByCurrentUser = Piwik::hasUserSuperUserAccess();
-        $this->readableByCurrentUser = $this->writableByCurrentUser;
+        $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());
+    }
+
+    /**
+     * Set whether setting is writable or not. For example to hide setting from the UI set it to false.
+     *
+     * @param bool $isWritable
+     */
+    public function setIsWritableByCurrentUser($isWritable)
+    {
+        $this->isWritableByCurrentUser = (bool) $isWritable;
     }
 
     /**
@@ -63,27 +58,7 @@ class SystemSetting extends Setting
             return false;
         }
 
-        return $this->writableByCurrentUser;
-    }
-
-    /**
-     * Set whether setting is writable or not. For example to hide setting from the UI set it to false.
-     *
-     * @param bool $isWritable
-     */
-    public function setIsWritableByCurrentUser($isWritable)
-    {
-        $this->writableByCurrentUser = (bool) $isWritable;
-    }
-
-    /**
-     * Returns `true` if this setting can be displayed for the current user, `false` if otherwise.
-     *
-     * @return bool
-     */
-    public function isReadableByCurrentUser()
-    {
-        return $this->readableByCurrentUser;
+        return parent::isWritableByCurrentUser();
     }
 
     /**

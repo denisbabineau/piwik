@@ -11,6 +11,7 @@ namespace Piwik\Settings;
 
 use Piwik\Piwik;
 use Piwik\SettingsServer;
+use Piwik\Settings\Storage\Storage;
 
 /**
  * Base setting type class.
@@ -69,7 +70,7 @@ abstract class Setting
      *
      * @var null|string
      */
-    public $introduction    = null;
+    public $introduction = null;
 
     /**
      * Text that will appear directly underneath the setting title in the _Plugin Settings_ admin
@@ -77,7 +78,7 @@ abstract class Setting
      *
      * @var null|string
      */
-    public $description     = null;
+    public $description = null;
 
     /**
      * Text that will appear next to the setting's section in the _Plugin Settings_ admin page. If set,
@@ -86,7 +87,7 @@ abstract class Setting
      *
      * @var null|string
      */
-    public $inlineHelp      = null;
+    public $inlineHelp = null;
 
     /**
      * A closure that does some custom validation on the setting before the setting is persisted.
@@ -105,7 +106,7 @@ abstract class Setting
      *
      * @var null|\Closure
      */
-    public $validate        = null;
+    public $validate = null;
 
     /**
      * A closure that transforms the setting value. If supplied, this closure will be executed after
@@ -127,7 +128,7 @@ abstract class Setting
      *
      * @var null|\Closure
      */
-    public $transform          = null;
+    public $transform = null;
 
     /**
      * Default value of this setting.
@@ -137,22 +138,37 @@ abstract class Setting
      *
      * @var mixed
      */
-    public $defaultValue    = null;
+    public $defaultValue = null;
 
     /**
      * This setting's display name, for example, `'Refresh Interval'`.
      *
      * @var string
      */
-    public $title           = '';
+    public $title = '';
 
+    /**
+     * Defines whether a user can change the value and whether a user is allowed to actually see the value
+     * of this setting. Eg via UI or API.
+     * @var bool
+     * @internal
+     */
+    protected $isWritableByCurrentUser = false;
+
+    /**
+     * @internal
+     * @ignore
+     * @var string
+     */
     protected $key;
+
     protected $name;
 
     /**
-     * @var StorageInterface
+     * @var Storage
      */
     private $storage;
+
     protected $pluginName;
 
     /**
@@ -187,25 +203,17 @@ abstract class Setting
      */
     public function isWritableByCurrentUser()
     {
-        return false;
-    }
-
-    /**
-     * Returns `true` if this setting can be displayed for the current user, `false` if otherwise.
-     *
-     * @return bool
-     */
-    public function isReadableByCurrentUser()
-    {
-        return false;
+        return $this->isWritableByCurrentUser;
     }
 
     /**
      * Sets the object used to persist settings.
      *
-     * @param StorageInterface $storage
+     * @internal
+     * @ignore
+     * @param Storage $storage
      */
-    public function setStorage(StorageInterface $storage)
+    public function setStorage(Storage $storage)
     {
         $this->storage = $storage;
     }
@@ -213,7 +221,7 @@ abstract class Setting
     /**
      * @internal
      * @ignore
-     * @return StorageInterface
+     * @return Storage
      */
     public function getStorage()
     {
@@ -224,6 +232,8 @@ abstract class Setting
      * Sets th name of the plugin the setting belongs to
      *
      * @param string $pluginName
+     * @ignore
+     * @internal
      */
     public function setPluginName($pluginName)
     {
@@ -239,8 +249,6 @@ abstract class Setting
      */
     public function getValue()
     {
-        $this->checkHasEnoughReadPermission();
-
         return $this->storage->getValue($this);
     }
 
@@ -255,7 +263,7 @@ abstract class Setting
     {
         $this->checkHasEnoughWritePermission();
 
-        return $this->storage->deleteValue($this);
+        $this->storage->deleteValue($this);
     }
 
     /**
@@ -274,7 +282,7 @@ abstract class Setting
             settype($value, $this->type);
         }
 
-        return $this->storage->setValue($this, $value);
+        $this->storage->setValue($this, $value);
     }
 
     private function validateValue($value)
@@ -283,6 +291,23 @@ abstract class Setting
 
         if ($this->validate && $this->validate instanceof \Closure) {
             call_user_func($this->validate, $value, $this);
+        } elseif (is_array($this->availableValues)) {
+
+            // TODO move error message creation to a subclass, eg in MeasurableSettings we do not want to mention plugin name
+            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingsValueNotAllowed',
+                                         array($this->title, $this->pluginName));
+
+            if (is_array($value) && $this->type === Settings::TYPE_ARRAY) {
+                foreach ($value as $val) {
+                    if (!array_key_exists($val, $this->availableValues)) {
+                        throw new \Exception($errorMsg);
+                    }
+                }
+            } else {
+                if (!array_key_exists($value, $this->availableValues)) {
+                    throw new \Exception($errorMsg);
+                }
+            }
         }
     }
 
@@ -298,22 +323,6 @@ abstract class Setting
 
         if (!$this->isWritableByCurrentUser()) {
             $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->getName(), $this->pluginName));
-            throw new \Exception($errorMsg);
-        }
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function checkHasEnoughReadPermission()
-    {
-        // When the request is a Tracker request, allow plugins to read settings
-        if (SettingsServer::isTrackerApiRequest()) {
-            return;
-        }
-
-        if (!$this->isReadableByCurrentUser()) {
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingReadNotAllowed', array($this->getName(), $this->pluginName));
             throw new \Exception($errorMsg);
         }
     }

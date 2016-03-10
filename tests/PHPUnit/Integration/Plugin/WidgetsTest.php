@@ -10,7 +10,7 @@ namespace Piwik\Tests\Integration\Plugin;
 
 use Piwik\Container\StaticContainer;
 use Piwik\Db;
-use Piwik\Plugin\Widgets;
+use Piwik\Plugin\WidgetsProvider;
 use Piwik\Settings\Storage;
 use Piwik\Tests\Framework\Fixture;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
@@ -24,7 +24,7 @@ use Piwik\Widget\WidgetContainerConfig;
 class WidgetsTest extends IntegrationTestCase
 {
     /**
-     * @var Widgets
+     * @var WidgetsProvider
      */
     private $widgets;
 
@@ -37,7 +37,7 @@ class WidgetsTest extends IntegrationTestCase
             Fixture::createWebsite('2015-01-01 00:00:00');
         }
 
-        $this->widgets = new Widgets(StaticContainer::get('Piwik\Plugin\Manager'));
+        $this->widgets = new WidgetsProvider(StaticContainer::get('Piwik\Plugin\Manager'));
     }
 
     public function tearDown()

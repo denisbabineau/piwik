@@ -19,6 +19,8 @@ This is a changelog for Piwik platform developers. All changes for our HTTP API'
 * The `core:plugin` console command has been removed in favor of the new `plugin:list`, `plugin:activate` and `plugin:deactivate` commands as anounced in Piwik 2.11
 * The visibility of private properties and methods in `Piwik\Plugins\Login\Controller` were changed to `protected`
 * Controller actions are now case sensitive. This means the URL and events have to use the same case as the name of the action defined in a controller. 
+* The class `Piwik\Plugin\Settings` has been moved to `Piwik\Settings\Settings`.
+* The methods `Piwik\Plugin\Settings::setIntroduction` and `Piwik\Plugin\Settings::getIntroduction` have been removed.
 
 ### New APIs
 * Multiple widgets for one report can now be created via the `Report::configureWidgets()` method via the new classes `Piwik\Widget\ReportWidgetFactory` and `Piwik\Widget\ReportWidgetConfig`

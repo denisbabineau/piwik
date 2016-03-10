@@ -36,7 +36,7 @@ class IntegrationTestCase extends \Piwik\Tests\Framework\TestCase\IntegrationTes
     {
         $this->setSuperUser();
         if ($this->settings) {
-            $this->settings->removeAllPluginSettings();
+            $this->settings->deleteSavedSettings();
         }
 
         parent::tearDown();
@@ -46,7 +46,7 @@ class IntegrationTestCase extends \Piwik\Tests\Framework\TestCase\IntegrationTes
     {
         $this->assertNotDbConnectionCreated();
 
-        new Storage('PluginName');
+        new Storage(new Storage\Backend\Plugin('PluginName'));
 
         $this->assertNotDbConnectionCreated();
     }
@@ -64,7 +64,7 @@ class IntegrationTestCase extends \Piwik\Tests\Framework\TestCase\IntegrationTes
     protected function buildUserSetting($name, $title, $userLogin = null)
     {
         $userSetting = new \Piwik\Settings\UserSetting($name, $title, $userLogin);
-        $userSetting->setStorage(new Storage('ExampleSettingsPlugin'));
+        $userSetting->setStorage(new Storage(new Storage\Backend\Plugin('ExampleSettingsPlugin')));
 
         return $userSetting;
     }
@@ -72,7 +72,7 @@ class IntegrationTestCase extends \Piwik\Tests\Framework\TestCase\IntegrationTes
     protected function buildSystemSetting($name, $title)
     {
         $systemSetting = new \Piwik\Settings\SystemSetting($name, $title);
-        $systemSetting->setStorage(new Storage('ExampleSettingsPlugin'));
+        $systemSetting->setStorage(new Storage(new Storage\Backend\Plugin('ExampleSettingsPlugin')));
 
         return $systemSetting;
     }

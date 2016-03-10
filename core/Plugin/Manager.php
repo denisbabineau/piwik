@@ -398,7 +398,12 @@ class Manager
         }
         $this->loadAllPluginsAndGetTheirInfo();
 
-        \Piwik\Settings\Manager::cleanupPluginSettings($pluginName);
+        $settings = new SettingsProvider($this);
+        $settings = $settings->getPluginSettings($pluginName);
+
+        if (!empty($settings)) {
+            $settings->deleteSavedSettings();
+        }
 
         $this->executePluginDeactivate($pluginName);
         $this->executePluginUninstall($pluginName);

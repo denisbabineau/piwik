@@ -7,62 +7,51 @@
  *
  */
 
-namespace Piwik\Measurable\Settings;
+namespace Piwik\Settings\Storage\Backend;
 
-use Piwik\Db;
 use Piwik\Common;
-use Piwik\Settings\Setting;
+use Piwik\Db;
+use Piwik\Option;
 
 /**
- * Storage for site settings
+ * Base setting type class.
+ *
+ * @api
  */
-class Storage extends \Piwik\Settings\Storage
+class Measurable implements BackendInterface
 {
-    private $idSite = null;
+    /**
+     * @var int
+     */
+    private $idSite;
 
     /**
-     * @var Db
+     * @var Db\AdapterInterface
      */
-    private $db = null;
+    private $db;
 
-    private $toBeDeleted = array();
-
-    public function __construct(Db\AdapterInterface $db, $idSite)
+    public function __construct($idSite)
     {
-        $this->db     = $db;
         $this->idSite = $idSite;
+        $this->db = Db::get();
     }
 
-    protected function deleteSettingsFromStorage()
+    public function getStorageId()
     {
-        $table = $this->getTableName();
-        $sql   = "DELETE FROM $table WHERE `idsite` = ?";
-        $bind  = array($this->idSite);
-
-        $this->db->query($sql, $bind);
-    }
-
-    public function deleteValue(Setting $setting)
-    {
-        $this->toBeDeleted[$setting->getName()] = true;
-        parent::deleteValue($setting);
-    }
-
-    public function setValue(Setting $setting, $value)
-    {
-        $this->toBeDeleted[$setting->getName()] = false; // prevent from deleting this setting, we will create/update it
-        parent::setValue($setting, $value);
+        return 'Site_' . $this->idSite . '_Settings';
     }
 
     /**
      * Saves (persists) the current setting values in the database.
      */
-    public function save()
+    public function save($values)
     {
         $table = $this->getTableName();
 
-        foreach ($this->toBeDeleted as $name => $delete) {
-            if ($delete) {
+        $existingValues = $this->load();
+
+        foreach ($existingValues as $name => $delete) {
+            if (!array_key_exists($name, $values)) {
                 $sql  = "DELETE FROM $table WHERE `idsite` = ? and `setting_name` = ?";
                 $bind = array($this->idSite, $name);
 
@@ -70,9 +59,7 @@ class Storage extends \Piwik\Settings\Storage
             }
         }
 
-        $this->toBeDeleted = array();
-
-        foreach ($this->settingsValues as $name => $value) {
+        foreach ($values as $name => $value) {
             $value = serialize($value);
 
             $sql  = "INSERT INTO $table (`idsite`, `setting_name`, `setting_value`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `setting_value` = ?";
@@ -82,7 +69,7 @@ class Storage extends \Piwik\Settings\Storage
         }
     }
 
-    protected function loadSettings()
+    public function load()
     {
         $sql  = "SELECT `setting_name`, `setting_value` FROM " . $this->getTableName() . " WHERE idsite = ?";
         $bind = array($this->idSite);
@@ -101,4 +88,15 @@ class Storage extends \Piwik\Settings\Storage
     {
         return Common::prefixTable('site_setting');
     }
+
+    public function delete()
+    {
+        $table = $this->getTableName();
+        $sql   = "DELETE FROM $table WHERE `idsite` = ?";
+        $bind  = array($this->idSite);
+
+        $this->db->query($sql, $bind);
+        Option::delete($this->idSite);
+    }
+
 }

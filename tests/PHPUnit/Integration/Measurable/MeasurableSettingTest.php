@@ -8,8 +8,8 @@
 
 namespace Piwik\Tests\Integration\Measurable;
 
-use Piwik\Measurable\MeasurableSetting;
-use Piwik\Settings\Storage;
+use Piwik\Settings\Measurable\MeasurableSetting;
+use Piwik\Settings\Storage\Storage;
 use Piwik\Tests\Framework\Mock\FakeAccess;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 
@@ -27,7 +27,7 @@ class MeasurableSettingTest extends IntegrationTestCase
     private function createSetting()
     {
         $setting = new MeasurableSetting('name', 'test');
-        $storage = new Storage('test');
+        $storage = new Storage(new Storage\Backend\Plugin('test'));
         $setting->setStorage($storage);
         return $setting;
     }

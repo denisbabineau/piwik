@@ -8,8 +8,7 @@
 
 namespace Piwik\Plugins\SitesManager\tests\Integration;
 
-use Piwik\Measurable\MeasurableSetting;
-use Piwik\Measurable\MeasurableSettings;
+use Piwik\Settings\Measurable\MeasurableSettings;
 use Piwik\Piwik;
 use Piwik\Plugin;
 use Piwik\Plugins\MobileAppMeasurable;

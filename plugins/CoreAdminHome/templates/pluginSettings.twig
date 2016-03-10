@@ -30,12 +30,6 @@
 
         <h2 id="{{ pluginName|e('html_attr') }}">{{ pluginName }}</h2>
 
-        {% if pluginSettings.introduction %}
-            <p class="pluginIntroduction">
-                {{ pluginSettings.introduction }}
-            </p>
-        {% endif %}
-
         <div id="pluginSettings" data-pluginname="{{ pluginName|e('html_attr') }}">
 
             {% for name, setting in pluginSettings.settings %}

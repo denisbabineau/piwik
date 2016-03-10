@@ -18,7 +18,7 @@ use Piwik\Metrics\Formatter;
 use Piwik\Network\IPUtils;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Measurable\MeasurableSettings;
+use Piwik\Settings\Measurable\MeasurableSettings;
 use Piwik\ProxyHttp;
 use Piwik\Scheduler\Scheduler;
 use Piwik\SettingsPiwik;
@@ -615,7 +615,7 @@ class API extends \Piwik\Plugin\API
     {
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
-        foreach ($measurableSettings->getSettingsForCurrentUser() as $measurableSetting) {
+        foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
             $name = $measurableSetting->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
@@ -629,7 +629,7 @@ class API extends \Piwik\Plugin\API
 
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
-        foreach ($measurableSettings->getSettingsForCurrentUser() as $measurableSetting) {
+        foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
             $name = $measurableSetting->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);

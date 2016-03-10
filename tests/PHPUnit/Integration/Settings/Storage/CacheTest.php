@@ -11,15 +11,14 @@ namespace Piwik\Tests\Integration\Tracker;
 use Piwik\Cache as PiwikCache;
 use Piwik\Settings\Storage;
 use Piwik\Tests\Integration\Settings\StorageTest;
-use Piwik\Tracker\Cache;
-use Piwik\Tracker\SettingsStorage;
+use Piwik\Settings\Storage\Backend\Cache as BackendCache;
 
 /**
  * @group PluginSettings
  * @group Storage
- * @group SettingStorage
+ * @group Cache
  */
-class SettingsStorageTest extends StorageTest
+class CacheTest extends StorageTest
 {
 
     public function test_storageShouldLoadSettingsFromCacheIfPossible()
@@ -44,14 +43,14 @@ class SettingsStorageTest extends StorageTest
 
         $this->assertTrue($this->hasCache());
 
-        SettingsStorage::clearCache();
+        BackendCache::clearCache();
 
         $this->assertFalse($this->hasCache());
     }
 
     private function hasCache()
     {
-        return $this->getCache()->contains($this->storage->getOptionKey());
+        return $this->getCache()->contains($this->backend->getStorageId());
     }
 
     public function test_storageShouldNotCastAnyCachedValue()
@@ -76,21 +75,13 @@ class SettingsStorageTest extends StorageTest
 
     public function test_storageCreateACacheEntryIfNoCacheExistsYet()
     {
-        $cache = Cache::getCacheGeneral();
-        $this->assertArrayNotHasKey('settingsStorage', $cache); // make sure there is no cache entry yet
-
         $this->setSettingValueAndMakeSureCacheGetsCreated('myVal');
 
-        $cache = $this->getCache()->fetch($this->storage->getOptionKey());
+        $cache = $this->getCache()->fetch($this->backend->getStorageId());
 
         $this->assertEquals(array(
             $this->setting->getKey() => 'myVal'
         ), $cache);
-    }
-
-    protected function buildStorage()
-    {
-        return new SettingsStorage('PluginName');
     }
 
     private function getCache()
@@ -101,7 +92,7 @@ class SettingsStorageTest extends StorageTest
     private function setSettingValueInCache($value)
     {
         $cache = $this->getCache();
-        $cache->save($this->storage->getOptionKey(), array(
+        $cache->save($this->backend->getStorageId(), array(
             $this->setting->getKey() => $value
         ));
     }
@@ -113,6 +104,13 @@ class SettingsStorageTest extends StorageTest
 
         $storage = $this->buildStorage();
         $storage->getValue($this->setting); // force creation of cache by loading settings
+    }
+
+    protected function buildStorage()
+    {
+        $backend = new BackendCache($this->backend);
+
+        return new Storage($backend);
     }
 
 }

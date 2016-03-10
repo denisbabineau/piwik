@@ -25,9 +25,9 @@ use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Plugins\LanguagesManager\LanguagesManager;
 use Piwik\Plugins\PrivacyManager\DoNotTrackHeaderChecker;
 use Piwik\Plugins\SitesManager\API as APISitesManager;
-use Piwik\Settings\Manager as SettingsManager;
-use Piwik\Settings\SystemSetting;
-use Piwik\Settings\UserSetting;
+use Piwik\Plugins\CorePluginsAdmin\PluginsSettings;
+use Piwik\Settings\Plugin\SystemSetting;
+use Piwik\Settings\Plugin\UserSetting;
 use Piwik\Site;
 use Piwik\Translation\Translator;
 use Piwik\UpdateCheck;
@@ -46,10 +46,16 @@ class Controller extends ControllerAdmin
     /** @var OptOutManager */
     private $optOutManager;
 
-    public function __construct(Translator $translator, OptOutManager $optOutManager)
+    /**
+     * @var PluginsSettings
+     */
+    private $pluginsSettings;
+
+    public function __construct(Translator $translator, OptOutManager $optOutManager, PluginsSettings $pluginsSettings)
     {
         $this->translator = $translator;
         $this->optOutManager = $optOutManager;
+        $this->pluginsSettings = $pluginsSettings;
 
         parent::__construct();
     }
@@ -100,7 +106,7 @@ class Controller extends ControllerAdmin
     }
 
     /**
-     * @param \Piwik\Plugin\Settings[] $pluginsSettings
+     * @param \Piwik\Settings\Plugin\PluginSettings[] $pluginsSettings
      * @return array   array([pluginName] => [])
      */
     private function getSettingsByType($pluginsSettings, $mode)
@@ -110,7 +116,7 @@ class Controller extends ControllerAdmin
         foreach ($pluginsSettings as $pluginName => $pluginSettings) {
             $settings = array();
 
-            foreach ($pluginSettings->getSettingsForCurrentUser() as $setting) {
+            foreach ($pluginSettings->getSettingsWritableByCurrentUser() as $setting) {
                 if ('admin' === $mode && $setting instanceof SystemSetting) {
                     $settings[] = $setting;
                 } elseif ('user' === $mode && $setting instanceof UserSetting) {
@@ -120,7 +126,6 @@ class Controller extends ControllerAdmin
 
             if (!empty($settings)) {
                 $byType[$pluginName] = array(
-                    'introduction' => $pluginSettings->getIntroduction(),
                     'settings' => $settings
                 );
             }
@@ -147,7 +152,7 @@ class Controller extends ControllerAdmin
 
     private function getPluginSettings()
     {
-        $pluginsSettings = SettingsManager::getPluginSettingsForCurrentUser();
+        $pluginsSettings = $this->pluginsSettings->getPluginSettingsForCurrentUser();
 
         ksort($pluginsSettings);
 
@@ -155,7 +160,7 @@ class Controller extends ControllerAdmin
     }
 
     /**
-     * @param \Piwik\Plugin\Settings[] $pluginsSettings
+     * @param \Piwik\Settings\Plugin\PluginSettings[] $pluginsSettings
      * @return array   array([pluginName] => [])
      */
     private function getFirstSuperUserSettingNames($pluginsSettings)
@@ -163,8 +168,8 @@ class Controller extends ControllerAdmin
         $names = array();
         foreach ($pluginsSettings as $pluginName => $pluginSettings) {
 
-            foreach ($pluginSettings->getSettingsForCurrentUser() as $setting) {
-                if ($setting instanceof \Piwik\Settings\SystemSetting) {
+            foreach ($pluginSettings->getSettingsWritableByCurrentUser() as $setting) {
+                if ($setting instanceof SystemSetting) {
                     $names[$pluginName] = $setting->getName();
                     break;
                 }
@@ -188,12 +193,12 @@ class Controller extends ControllerAdmin
             ));
         }
 
-        $pluginsSettings = SettingsManager::getPluginSettingsForCurrentUser();
+        $pluginsSettings = $this->pluginsSettings->getPluginSettingsForCurrentUser();
 
         try {
 
             foreach ($pluginsSettings as $pluginName => $pluginSetting) {
-                foreach ($pluginSetting->getSettingsForCurrentUser() as $setting) {
+                foreach ($pluginSetting->getSettingsWritableByCurrentUser() as $setting) {
 
                     $value = $this->findSettingValueFromRequest($pluginName, $setting->getKey());
 

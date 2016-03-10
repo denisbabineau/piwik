@@ -9,8 +9,8 @@
 namespace Piwik\Tests\Integration\Settings;
 
 use Piwik\Db;
-use Piwik\Settings\UserSetting;
-use Piwik\Plugin\Settings as PluginSettings;
+use Piwik\Settings\Plugin\UserSetting;
+use Piwik\Settings\Plugin\PluginSettings as PluginSettings;
 
 /**
  * @group PluginSettings

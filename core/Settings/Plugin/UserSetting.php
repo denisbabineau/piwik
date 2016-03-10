@@ -7,15 +7,16 @@
  *
  */
 
-namespace Piwik\Settings;
+namespace Piwik\Settings\Plugin;
 
 use Piwik\Common;
 use Piwik\Piwik;
+use Piwik\Plugin\SettingsProvider;
+use Piwik\Settings\Setting;
 
 /**
  * Describes a per user setting. Each user will be able to change this setting for themselves,
  * but not for other users.
- *
  *
  * @api
  */
@@ -27,7 +28,7 @@ class UserSetting extends Setting
      * Null while not initialized, bool otherwise.
      * @var null|bool
      */
-    private $hasReadAndWritePermission = null;
+    private $hasWritePermission = null;
 
     /**
      * Constructor.
@@ -48,25 +49,16 @@ class UserSetting extends Setting
      *
      * @return bool
      */
-    public function isReadableByCurrentUser()
-    {
-        return $this->isWritableByCurrentUser();
-    }
-
-    /**
-     * Returns `true` if this setting can be displayed for the current user, `false` if otherwise.
-     *
-     * @return bool
-     */
     public function isWritableByCurrentUser()
     {
-        if (isset($this->hasReadAndWritePermission)) {
-            return $this->hasReadAndWritePermission;
+        if (isset($this->hasWritePermission)) {
+            return $this->hasWritePermission;
         }
 
-        $this->hasReadAndWritePermission = Piwik::isUserHasSomeViewAccess();
+        // performance improvement, do not detect this in __construct otherwise likely "big" query to DB.
+        $this->hasWritePermission = Piwik::isUserHasSomeViewAccess();
 
-        return $this->hasReadAndWritePermission;
+        return $this->hasWritePermission;
     }
 
     /**
@@ -128,7 +120,8 @@ class UserSetting extends Setting
             throw new \Exception('No userLogin specified');
         }
 
-        $pluginsSettings = Manager::getAllPluginSettings();
+        $settings = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
+        $pluginsSettings = $settings->getAllPluginsSettings();
 
         foreach ($pluginsSettings as $pluginSettings) {
             $settings = $pluginSettings->getSettings();
