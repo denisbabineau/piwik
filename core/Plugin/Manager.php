@@ -14,6 +14,7 @@ use Piwik\Cache;
 use Piwik\Columns\Dimension;
 use Piwik\Config as PiwikConfig;
 use Piwik\Config;
+use Piwik\Settings\Storage as SettingsStorage;
 use Piwik\Container\StaticContainer;
 use Piwik\EventDispatcher;
 use Piwik\Filesystem;
@@ -398,12 +399,8 @@ class Manager
         }
         $this->loadAllPluginsAndGetTheirInfo();
 
-        $settings = new SettingsProvider($this);
-        $settings = $settings->getPluginSettings($pluginName);
-
-        if (!empty($settings)) {
-            $settings->deleteSavedSettings();
-        }
+        $factory = new SettingsStorage\Factory();
+        $factory->getPluginStorage($pluginName)->delete();
 
         $this->executePluginDeactivate($pluginName);
         $this->executePluginUninstall($pluginName);

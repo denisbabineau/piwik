@@ -18,7 +18,7 @@ use Piwik\Settings\Storage;
  *
  * See {@link \Piwik\Plugin\Settings}.
  */
-class MeasurableSetting extends \Piwik\Settings\Setting
+class MeasurableProperty extends \Piwik\Settings\Setting
 {
 
     /**
@@ -45,22 +45,7 @@ class MeasurableSetting extends \Piwik\Settings\Setting
 
         if (!isset($this->storage)) {
             $storageFactory = new Storage\Factory();
-            $this->storage = $storageFactory->getMeasurableSettingsStorage($idSite);
-        }
-    }
-
-    public function setPluginName($pluginName)
-    {
-        parent::setPluginName($pluginName);
-
-        // the asterisk tag is indeed important here and better than an underscore. Imagine a plugin has the settings
-        // "api_password" and "api". A user having the login "_password" could otherwise under circumstances change the
-        // setting for "api" although he is not allowed to. It is not so important at the moment because only alNum is
-        // currently allowed as a name this might change in the future.
-        $appendix = '#' . $pluginName . '#';
-
-        if (!Common::stringEndsWith($this->key, $appendix)) {
-            $this->key = $this->name . $appendix;
+            $this->storage = $storageFactory->getMeasurableStorage($idSite);
         }
     }
 }

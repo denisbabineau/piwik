@@ -13,6 +13,7 @@ use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\SettingsProvider;
 use Piwik\Settings\Setting;
+use Piwik\Settings\Storage;
 
 /**
  * Describes a per user setting. Each user will be able to change this setting for themselves,
@@ -42,6 +43,14 @@ class UserSetting extends Setting
         parent::__construct($name, $title);
 
         $this->setUserLogin($userLogin);
+    }
+
+    public function setPluginName($pluginName)
+    {
+        parent::setPluginName($pluginName);
+
+        $factory = new Storage\Factory();
+        $this->storage = $factory->getPluginStorage($this->pluginName);
     }
 
     /**

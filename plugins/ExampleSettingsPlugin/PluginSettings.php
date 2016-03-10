@@ -15,11 +15,11 @@ use Piwik\Settings\Plugin\UserSetting;
  * Defines Settings for ExampleSettingsPlugin.
  *
  * Usage like this:
- * $settings = new Settings('ExampleSettingsPlugin');
+ * $settings = new PluginSettings('ExampleSettingsPlugin');
  * $settings->autoRefresh->getValue();
  * $settings->metric->getValue();
  */
-class Settings extends \Piwik\Settings\Settings
+class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 {
     /** @var UserSetting */
     public $autoRefresh;

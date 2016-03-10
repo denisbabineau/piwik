@@ -12,6 +12,7 @@ namespace Piwik\Settings\Plugin;
 use Piwik\Config;
 use Piwik\Piwik;
 use Piwik\Settings\Setting;
+use Piwik\Settings\Storage;
 
 /**
  * Describes a system wide setting. Only the Super User can change this type of setting and
@@ -34,6 +35,14 @@ class SystemSetting extends Setting
         parent::__construct($name, $title);
 
         $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());
+    }
+
+    public function setPluginName($pluginName)
+    {
+        parent::setPluginName($pluginName);
+
+        $factory = new Storage\Factory();
+        $this->storage = $factory->getPluginStorage($this->pluginName);
     }
 
     /**

@@ -10,7 +10,7 @@ namespace Piwik\Tests\Integration\Settings;
 
 use Piwik\Config;
 use Piwik\Db;
-use Piwik\Plugin\Settings;
+use Piwik\Settings\Settings;
 use Piwik\Settings\Plugin\SystemSetting;
 
 /**
@@ -116,7 +116,6 @@ class SystemSettingTest extends IntegrationTestCase
     {
         $this->setUser();
         $setting = $this->addSystemSetting('myusersetting', 'mytitle');
-        $setting->readableByCurrentUser = true;
 
         $this->assertEquals('', $setting->getValue());
     }

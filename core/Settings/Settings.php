@@ -8,9 +8,6 @@
  */
 namespace Piwik\Settings;
 
-use Piwik\Piwik;
-use Piwik\Settings\Storage\Storage;
-
 /**
  * Base class of all plugin settings providers. Plugins that define their own configuration settings
  * can extend this class to easily make their settings available to Piwik users.
@@ -41,28 +38,23 @@ abstract class Settings
     /**
      * An array containing all available settings: Array ( [setting-name] => [setting] )
      *
-     * @var Settings[]
+     * @var Setting[]
      */
     private $settings = array();
 
     protected $pluginName;
 
-    /**
-     * @var Storage
-     */
-    protected $storage;
-
     public function __construct()
     {
-        if (!$this->pluginName) {
+        if (!isset($this->pluginName)) {
             $classname = get_class($this);
             $parts     = explode('\\', $classname);
 
-            if (3 > count($parts)) {
+            if (count($parts) >= 3) {
                 $this->pluginName = $parts[2];
+            } else {
+                throw new \Exception(sprintf('Plugin Settings must have a plugin name specified in %s, could not detect plugin name', $classname));
             }
-
-            throw new \Exception('Plugin Settings must have a plugin name specified, could not detect plugin name');
         }
     }
 
@@ -160,8 +152,6 @@ abstract class Settings
         }
 
         $this->setDefaultTypeAndFieldIfNeeded($setting);
-
-        $setting->setStorage($this->storage);
         $setting->setPluginName($this->pluginName);
 
         $this->settings[$name] = $setting;
@@ -172,18 +162,9 @@ abstract class Settings
      */
     public function save()
     {
-        $this->storage->save();
-    }
-
-    /**
-     * Deletes all saved settings for this plugin from the database. Useful when uninstalling
-     * a plugin. Requires super user access.
-     */
-    public function deleteSavedSettings()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        $this->storage->deleteAllValues();
+        foreach ($this->settings as $setting) {
+            $setting->save();
+        }
     }
 
     private function getDefaultType($controlType)

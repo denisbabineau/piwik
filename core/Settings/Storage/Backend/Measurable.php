@@ -9,9 +9,11 @@
 
 namespace Piwik\Settings\Storage\Backend;
 
-use Piwik\Common;
+use Piwik\API\Request;
 use Piwik\Db;
-use Piwik\Option;
+use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
+use Piwik\Plugins\SitesManager\Model;
+use Piwik\Site;
 
 /**
  * Base setting type class.
@@ -25,20 +27,14 @@ class Measurable implements BackendInterface
      */
     private $idSite;
 
-    /**
-     * @var Db\AdapterInterface
-     */
-    private $db;
-
     public function __construct($idSite)
     {
         $this->idSite = $idSite;
-        $this->db = Db::get();
     }
 
     public function getStorageId()
     {
-        return 'Site_' . $this->idSite . '_Settings';
+        return 'Measurable_' . $this->idSite;
     }
 
     /**
@@ -46,57 +42,20 @@ class Measurable implements BackendInterface
      */
     public function save($values)
     {
-        $table = $this->getTableName();
-
-        $existingValues = $this->load();
-
-        foreach ($existingValues as $name => $delete) {
-            if (!array_key_exists($name, $values)) {
-                $sql  = "DELETE FROM $table WHERE `idsite` = ? and `setting_name` = ?";
-                $bind = array($this->idSite, $name);
-
-                $this->db->query($sql, $bind);
-            }
-        }
-
-        foreach ($values as $name => $value) {
-            $value = serialize($value);
-
-            $sql  = "INSERT INTO $table (`idsite`, `setting_name`, `setting_value`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `setting_value` = ?";
-            $bind = array($this->idSite, $name, $value, $value);
-
-            $this->db->query($sql, $bind);
-        }
+        $model = new Model();
+        $model->updateSite($values, $this->idSite);
     }
 
     public function load()
     {
-        $sql  = "SELECT `setting_name`, `setting_value` FROM " . $this->getTableName() . " WHERE idsite = ?";
-        $bind = array($this->idSite);
-
-        $settings =$this->db->fetchAll($sql, $bind);
-
-        $flat = array();
-        foreach ($settings as $setting) {
-            $flat[$setting['setting_name']] = unserialize($setting['setting_value']);
+        if (!empty($this->idSite)) {
+            return Site::getSite($this->idSite);
         }
-
-        return $flat;
-    }
-
-    private function getTableName()
-    {
-        return Common::prefixTable('site_setting');
     }
 
     public function delete()
     {
-        $table = $this->getTableName();
-        $sql   = "DELETE FROM $table WHERE `idsite` = ?";
-        $bind  = array($this->idSite);
 
-        $this->db->query($sql, $bind);
-        Option::delete($this->idSite);
     }
 
 }

@@ -33,8 +33,6 @@ abstract class PluginSettings extends Settings
     {
         parent::__construct();
 
-        $this->storage = Storage\Factory::make('plugin', $this->pluginName);
-
         $this->init();
     }
 

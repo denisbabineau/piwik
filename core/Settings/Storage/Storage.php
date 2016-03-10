@@ -34,6 +34,8 @@ class Storage
      */
     private $backend;
 
+    private $isDirty = false;
+
     public function __construct(Backend\BackendInterface $backend)
     {
         $this->backend = $backend;
@@ -49,11 +51,16 @@ class Storage
      */
     public function save()
     {
-        $this->loadSettingsIfNotDoneYet();
+        if ($this->isDirty) {
+            // only save when it is actually dirty. This way we prevent having
+            // saving the same values multiple times when there was no change
+            $this->loadSettingsIfNotDoneYet();
 
-        $this->backend->save($this->settingsValues);
+            $this->backend->save($this->settingsValues);
+            $this->isDirty = false;
 
-        $this->clearBackendCache();
+            $this->clearBackendCache();
+        }
     }
 
     /**
@@ -106,6 +113,7 @@ class Storage
     {
         $this->loadSettingsIfNotDoneYet();
 
+        $this->isDirty = true;
         $this->settingsValues[$setting->getKey()] = $value;
     }
 
@@ -123,6 +131,7 @@ class Storage
 
         if (array_key_exists($key, $this->settingsValues)) {
             unset($this->settingsValues[$key]);
+            $this->isDirty = true;
         }
     }
 

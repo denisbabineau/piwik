@@ -34,27 +34,43 @@ abstract class MeasurableSettings extends Settings
     protected $idSite;
 
     /**
+     * @var string
+     */
+    protected $idType;
+
+    /**
      * Constructor.
      */
-    public function __construct($idSite)
+    public function __construct($idSite, $idType = null)
     {
         parent::__construct();
 
         $this->idSite = (int) $idSite;
-        $this->storage = Storage\Factory::make('measurable', $idSite);
+
+        if (isset($idType)) {
+            $this->idType = $idType;
+        } elseif (!empty($idSite)) {
+            $this->idType = Site::getTypeFor($idSite);
+        } else {
+            throw new \Exception('No type specified in ' . get_class($this));
+        }
 
         $this->init();
     }
 
-    protected function hasSiteTypeId($typeId)
+    protected function hasType($typeId)
     {
-        return $typeId === Site::getTypeFor($this->idSite);
+        return $typeId === $this->idType;
     }
 
     public function addSetting(Setting $setting)
     {
         if (!$setting instanceof MeasurableSetting) {
             throw new \Exception('Only a MeasurableSetting can be added to MeasurableSettings');
+        }
+
+        if (!empty($this->idSite)) {
+            $setting->setIdSite($this->idSite);
         }
 
         parent::addSetting($setting);

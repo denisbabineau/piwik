@@ -8,11 +8,10 @@
 
 namespace Piwik\Tests\Integration\Settings\Storage;
 
-use Piwik\Settings\Storage;
+use Piwik\Settings\Storage\Storage;
 use Piwik\Settings\Storage\Factory;
 use Piwik\SettingsServer;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
-use Piwik\Settings\Storage\Cache;
 
 /**
  * @group Tracker
@@ -23,10 +22,14 @@ use Piwik\Settings\Storage\Cache;
  */
 class FactoryTest extends IntegrationTestCase
 {
+    private function getFactory()
+    {
+        return new Factory();
+    }
 
     public function test_make_shouldCreateDefaultInstance()
     {
-        $storage = Factory::make('plugin', 'PluginName');
+        $storage = $this->getFactory()->getPluginStorage('PluginName');
         $this->assertTrue($storage instanceof Storage);
     }
 
@@ -39,7 +42,7 @@ class FactoryTest extends IntegrationTestCase
 
     public function test_make_shouldPassThePluginNameToTheStorage()
     {
-        $storage = Factory::make('plugin', 'PluginName');
+        $storage = $this->getFactory()->getPluginStorage('PluginName');
         $this->assertEquals('Plugin_PluginName_Settings', $storage->getBackend()->getStorageId());
     }
 
@@ -54,7 +57,7 @@ class FactoryTest extends IntegrationTestCase
     {
         SettingsServer::setIsTrackerApiRequest();
 
-        $storage = Factory::make('plugin', 'PluginName');
+        $storage = $this->getFactory()->getPluginStorage('PluginName');
 
         SettingsServer::setIsNotTrackerApiRequest();
 

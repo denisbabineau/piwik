@@ -167,8 +167,11 @@ abstract class Setting
     /**
      * @var Storage
      */
-    private $storage;
+    protected $storage;
 
+    /**
+     * @var string
+     */
     protected $pluginName;
 
     /**
@@ -206,8 +209,15 @@ abstract class Setting
         return $this->isWritableByCurrentUser;
     }
 
+    public function save()
+    {
+        if (isset($this->storage)) {
+            $this->storage->save();
+        }
+    }
+
     /**
-     * Sets the object used to persist settings.
+     * Sets the object used to persist settings. Meant for tests only.
      *
      * @internal
      * @ignore
@@ -216,16 +226,6 @@ abstract class Setting
     public function setStorage(Storage $storage)
     {
         $this->storage = $storage;
-    }
-
-    /**
-     * @internal
-     * @ignore
-     * @return Storage
-     */
-    public function getStorage()
-    {
-        return $this->storage;
     }
 
     /**

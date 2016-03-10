@@ -40,6 +40,51 @@ class SettingsProvider
      */
     public function getPluginSettings($pluginName)
     {
+        $plugin = $this->getLoadedAndActivated($pluginName);
+
+        if ($plugin) {
+            return $plugin->findComponent('PluginSettings', 'Piwik\\Settings\\Plugin\\PluginSettings');
+        }
+    }
+
+    /**
+     * @return \Piwik\Settings\Measurable\MeasurableSettings|null
+     */
+    public function getMeasurableSetting($pluginName)
+    {
+        $plugin = $this->getLoadedAndActivated($pluginName);
+
+        if ($plugin) {
+            return $plugin->findComponent('MeasurableSettings', 'Piwik\\Settings\\Measurable\\MeasurableSettings');
+        }
+    }
+
+    /**
+     * Returns all available plugin settings, even settings for inactive plugins. A plugin has to specify a file named
+     * `Settings.php` containing a class named `Settings` that extends `Piwik\Settings\Settings` in order to be
+     * considered as a plugin setting. Otherwise the settings for a plugin won't be available.
+     *
+     * @return \Piwik\Settings\Plugin\PluginSettings[]   An array containing array([pluginName] => [setting instance]).
+     */
+    public function getAllPluginsSettings()
+    {
+        return $this->findSettingsComponents('PluginSettings', '\\Piwik\\Settings\\Plugin\\PluginSettings');
+    }
+
+    /**
+     * Returns all available plugin settings, even settings for inactive plugins. A plugin has to specify a file named
+     * `Settings.php` containing a class named `Settings` that extends `Piwik\Settings\Settings` in order to be
+     * considered as a plugin setting. Otherwise the settings for a plugin won't be available.
+     *
+     * @return \Piwik\Settings\Measurable\MeasurableSettings[]   An array containing array([pluginName] => [setting instance]).
+     */
+    public function getAllMeasurableSettings()
+    {
+        return $this->findSettingsComponents('MeasurableSettings', 'Piwik\\Settings\\Measurable\\MeasurableSettings');
+    }
+
+    private function getLoadedAndActivated($pluginName)
+    {
         if (!$this->pluginManager->isPluginLoaded($pluginName)) {
             return;
         }
@@ -55,9 +100,7 @@ class SettingsProvider
             return;
         }
 
-        $settings = $plugin->findComponent('Settings', 'Piwik\\Settings\\Settings');
-
-        return $settings;
+        return $plugin;
     }
 
     /**
@@ -67,14 +110,14 @@ class SettingsProvider
      *
      * @return \Piwik\Settings\Settings[]   An array containing array([pluginName] => [setting instance]).
      */
-    public function getAllPluginsSettings()
+    private function findSettingsComponents($componentName, $className)
     {
-        $cacheId = CacheId::languageAware('AllPluginSettings');
+        $cacheId = CacheId::languageAware('All' . $componentName);
         $cache = PiwikCache::getTransientCache();
 
         if (!$cache->contains($cacheId)) {
             /** @var \Piwik\Settings\Settings[] $settings */
-            $settings = $this->pluginManager->findComponents('Settings', '\\Piwik\\Settings\\Settings');
+            $settings = $this->pluginManager->findComponents($componentName, $className);
 
             $byPluginName = array();
 
