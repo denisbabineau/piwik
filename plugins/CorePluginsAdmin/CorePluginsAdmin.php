@@ -55,6 +55,8 @@ class CorePluginsAdmin extends \Piwik\Plugin
     public function getClientSideTranslationKeys(&$translations)
     {
         $translations[] = 'CorePluginsAdmin_NoZipFileSelected';
+        $translations[] = 'CoreAdminHome_PluginSettingsIntro';
+        $translations[] = 'General_Save';
     }
 
 }

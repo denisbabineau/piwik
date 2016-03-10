@@ -11,6 +11,7 @@ namespace Piwik\Settings\Measurable;
 
 use Piwik\Common;
 use Piwik\Piwik;
+use Piwik\Settings\SettingConfig;
 use Piwik\Settings\Storage;
 
 /**
@@ -20,6 +21,7 @@ use Piwik\Settings\Storage;
  */
 class MeasurableSetting extends \Piwik\Settings\Setting
 {
+    private $idSite = 0;
 
     /**
      * Constructor.
@@ -28,31 +30,27 @@ class MeasurableSetting extends \Piwik\Settings\Setting
      * @param string $title The display name of the setting.
      * @param int $idSite The idSite this setting belongs to.
      */
-    public function __construct($name, $title)
+    public function __construct(SettingConfig $config, $pluginName, $idSite)
     {
-        parent::__construct($name, $title);
-
-        // when no idSite is set yet, likely a site is created and this requires SuperUserAccess
-        $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
-    }
-
-    public function setIdSite($idSite)
-    {
-        // a site was created, to edit the site, admin access is needed.
+        parent::__construct($config, $pluginName);
 
         $this->idSite = $idSite;
-        $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);
 
-        if (!isset($this->storage)) {
-            $storageFactory = new Storage\Factory();
-            $this->storage = $storageFactory->getMeasurableSettingsStorage($idSite);
+        if (!empty($idSite)) {
+            $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);
+        } else {
+            // when no idSite is set yet, likely a site is created and this requires SuperUserAccess
+            $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
         }
+
+        $storageFactory = new Storage\Factory();
+        $this->storage = $storageFactory->getMeasurableSettingsStorage($idSite);
+
+        $this->updateKey($pluginName);
     }
 
-    public function setPluginName($pluginName)
+    public function updateKey($pluginName)
     {
-        parent::setPluginName($pluginName);
-
         // the asterisk tag is indeed important here and better than an underscore. Imagine a plugin has the settings
         // "api_password" and "api". A user having the login "_password" could otherwise under circumstances change the
         // setting for "api" although he is not allowed to. It is not so important at the moment because only alNum is
@@ -60,7 +58,7 @@ class MeasurableSetting extends \Piwik\Settings\Setting
         $appendix = '#' . $pluginName . '#';
 
         if (!Common::stringEndsWith($this->key, $appendix)) {
-            $this->key = $this->name . $appendix;
+            $this->key = $this->config->getName() . $appendix;
         }
     }
 }

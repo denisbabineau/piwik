@@ -36,6 +36,22 @@ abstract class PluginSettings extends Settings
         $this->init();
     }
 
+    protected function makeSystemSetting($config)
+    {
+        $setting = new SystemSetting($config, $this->pluginName);
+        $this->addSetting($setting);
+        return $setting;
+    }
+
+    protected function makeUserSetting($config)
+    {
+        $userLogin = Piwik::getCurrentUserLogin();
+
+        $setting = new UserSetting($config, $this->pluginName, $userLogin);
+        $this->addSetting($setting);
+        return $setting;
+    }
+
     /**
      * Saves (persists) the current setting values in the database.
      */

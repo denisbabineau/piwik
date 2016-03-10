@@ -20,132 +20,6 @@ use Piwik\Settings\Storage\Storage;
  */
 abstract class Setting
 {
-    /**
-     * Describes the setting's PHP data type. When saved, setting values will always be casted to this
-     * type.
-     *
-     * See {@link Piwik\Plugin\Settings} for a list of supported data types.
-     *
-     * @var string
-     */
-    public $type = null;
-
-    /**
-     * Describes what HTML element should be used to manipulate the setting through Piwik's UI.
-     *
-     * See {@link Piwik\Plugin\Settings} for a list of supported control types.
-     *
-     * @var string
-     */
-    public $uiControlType = null;
-
-    /**
-     * Name-value mapping of HTML attributes that will be added HTML form control, eg,
-     * `array('size' => 3)`. Attributes will be escaped before outputting.
-     *
-     * @var array
-     */
-    public $uiControlAttributes = array();
-
-    /**
-     * The list of all available values for this setting. If null, the setting can have any value.
-     *
-     * If supplied, this field should be an array mapping available values with their prettified
-     * display value. Eg, if set to `array('nb_visits' => 'Visits', 'nb_actions' => 'Actions')`,
-     * the UI will display **Visits** and **Actions**, and when the user selects one, Piwik will
-     * set the setting to **nb_visits** or **nb_actions** respectively.
-     *
-     * The setting value will be validated if this field is set. If the value is not one of the
-     * available values, an error will be triggered.
-     *
-     * _Note: If a custom validator is supplied (see {@link $validate}), the setting value will
-     * not be validated._
-     *
-     * @var null|array
-     */
-    public $availableValues = null;
-
-    /**
-     * Text that will appear above this setting's section in the _Plugin Settings_ admin page.
-     *
-     * @var null|string
-     */
-    public $introduction = null;
-
-    /**
-     * Text that will appear directly underneath the setting title in the _Plugin Settings_ admin
-     * page. If set, should be a short description of the setting.
-     *
-     * @var null|string
-     */
-    public $description = null;
-
-    /**
-     * Text that will appear next to the setting's section in the _Plugin Settings_ admin page. If set,
-     * it should contain information about the setting that is more specific than a general description,
-     * such as the format of the setting value if it has a special format.
-     *
-     * @var null|string
-     */
-    public $inlineHelp = null;
-
-    /**
-     * A closure that does some custom validation on the setting before the setting is persisted.
-     *
-     * The closure should take two arguments: the setting value and the {@link Setting} instance being
-     * validated. If the value is found to be invalid, the closure should throw an exception with
-     * a message that describes the error.
-     *
-     * **Example**
-     *
-     *     $setting->validate = function ($value, Setting $setting) {
-     *         if ($value > 60) {
-     *             throw new \Exception('The time limit is not allowed to be greater than 60 minutes.');
-     *         }
-     *     }
-     *
-     * @var null|\Closure
-     */
-    public $validate = null;
-
-    /**
-     * A closure that transforms the setting value. If supplied, this closure will be executed after
-     * the setting has been validated.
-     *
-     * _Note: If a transform is supplied, the setting's {@link $type} has no effect. This means the
-     * transformation function will be responsible for casting the setting value to the appropriate
-     * data type._
-     *
-     * **Example**
-     *
-     *     $setting->transform = function ($value, Setting $setting) {
-     *         if ($value > 30) {
-     *             $value = 30;
-     *         }
-     *
-     *         return (int) $value;
-     *     }
-     *
-     * @var null|\Closure
-     */
-    public $transform = null;
-
-    /**
-     * Default value of this setting.
-     *
-     * The default value is not casted to the appropriate data type. This means _**you**_ have to make
-     * sure the value is of the correct type.
-     *
-     * @var mixed
-     */
-    public $defaultValue = null;
-
-    /**
-     * This setting's display name, for example, `'Refresh Interval'`.
-     *
-     * @var string
-     */
-    public $title = '';
 
     /**
      * Defines whether a user can change the value and whether a user is allowed to actually see the value
@@ -162,8 +36,6 @@ abstract class Setting
      */
     protected $key;
 
-    protected $name;
-
     /**
      * @var Storage
      */
@@ -175,27 +47,29 @@ abstract class Setting
     protected $pluginName;
 
     /**
+     * @var SettingConfig
+     */
+    protected $config;
+
+    /**
      * Constructor.
      *
      * @param string $name    The setting's persisted name. Only alphanumeric characters are allowed, eg,
      *                        `'refreshInterval'`.
      * @param string $title   The setting's display name, eg, `'Refresh Interval'`.
      */
-    public function __construct($name, $title)
+    public function __construct(SettingConfig $config, $pluginName)
     {
-        $this->key   = $name;
-        $this->name  = $name;
-        $this->title = $title;
+        $this->setDefaultTypeAndFieldIfNeeded($config);
+
+        $this->config = $config;
+        $this->key = $config->getName();
+        $this->pluginName = $pluginName;
     }
 
-    /**
-     * Returns the setting's persisted name, eg, `'refreshInterval'`.
-     *
-     * @return string
-     */
-    public function getName()
+    public function getConfig()
     {
-        return $this->name;
+        return $this->config;
     }
 
     /**
@@ -207,6 +81,16 @@ abstract class Setting
     public function isWritableByCurrentUser()
     {
         return $this->isWritableByCurrentUser;
+    }
+
+    /**
+     * Set whether setting is writable or not. For example to hide setting from the UI set it to false.
+     *
+     * @param bool $isWritable
+     */
+    public function setIsWritableByCurrentUser($isWritable)
+    {
+        $this->isWritableByCurrentUser = (bool) $isWritable;
     }
 
     public function save()
@@ -229,18 +113,6 @@ abstract class Setting
     }
 
     /**
-     * Sets th name of the plugin the setting belongs to
-     *
-     * @param string $pluginName
-     * @ignore
-     * @internal
-     */
-    public function setPluginName($pluginName)
-    {
-        $this->pluginName = $pluginName;
-    }
-
-    /**
      * Returns the previously persisted setting value. If no value was set, the default value
      * is returned.
      *
@@ -249,7 +121,7 @@ abstract class Setting
      */
     public function getValue()
     {
-        return $this->storage->getValue($this);
+        return $this->storage->getValue($this->key, $this->config->defaultValue);
     }
 
     /**
@@ -263,7 +135,7 @@ abstract class Setting
     {
         $this->checkHasEnoughWritePermission();
 
-        $this->storage->deleteValue($this);
+        $this->storage->deleteValue($this->key);
     }
 
     /**
@@ -276,35 +148,35 @@ abstract class Setting
     {
         $this->validateValue($value);
 
-        if ($this->transform && $this->transform instanceof \Closure) {
-            $value = call_user_func($this->transform, $value, $this);
+        if ($this->config->transform && $this->config->transform instanceof \Closure) {
+            $value = call_user_func($this->config->transform, $value, $this);
         } elseif (isset($this->type)) {
             settype($value, $this->type);
         }
 
-        $this->storage->setValue($this, $value);
+        $this->storage->setValue($this->key, $value);
     }
 
     private function validateValue($value)
     {
         $this->checkHasEnoughWritePermission();
 
-        if ($this->validate && $this->validate instanceof \Closure) {
-            call_user_func($this->validate, $value, $this);
-        } elseif (is_array($this->availableValues)) {
+        if ($this->config->validate && $this->config->validate instanceof \Closure) {
+            call_user_func($this->config->validate, $value, $this);
+        } elseif (is_array($this->config->availableValues)) {
 
             // TODO move error message creation to a subclass, eg in MeasurableSettings we do not want to mention plugin name
             $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingsValueNotAllowed',
-                                         array($this->title, $this->pluginName));
+                                         array($this->config->title, $this->pluginName));
 
-            if (is_array($value) && $this->type === Settings::TYPE_ARRAY) {
+            if (is_array($value) && $this->config->type === SettingConfig::TYPE_ARRAY) {
                 foreach ($value as $val) {
-                    if (!array_key_exists($val, $this->availableValues)) {
+                    if (!array_key_exists($val, $this->config->availableValues)) {
                         throw new \Exception($errorMsg);
                     }
                 }
             } else {
-                if (!array_key_exists($value, $this->availableValues)) {
+                if (!array_key_exists($value, $this->config->availableValues)) {
                     throw new \Exception($errorMsg);
                 }
             }
@@ -322,28 +194,23 @@ abstract class Setting
         }
 
         if (!$this->isWritableByCurrentUser()) {
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->getName(), $this->pluginName));
+            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->config->getName(), $this->pluginName));
             throw new \Exception($errorMsg);
         }
     }
 
-    /**
-     * Returns the unique string key used to store this setting.
-     *
-     * @return string
-     */
-    public function getKey()
+    private function setDefaultTypeAndFieldIfNeeded(SettingConfig $config)
     {
-        return $this->key;
+        if (empty($config) || !$config instanceof SettingConfig) {
+            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);exit;
+        }
+        if (!isset($config->type)) {
+            $config->type = $config->getDefaultType($config->uiControlType);
+        }
+
+        if (!isset($config->uiControlType)) {
+            $config->uiControlType = $config->getDefaultUiControl($config->type);
+        }
     }
 
-    /**
-     * Returns the display order. The lower the return value, the earlier the setting will be displayed.
-     *
-     * @return int
-     */
-    public function getOrder()
-    {
-        return 100;
-    }
 }

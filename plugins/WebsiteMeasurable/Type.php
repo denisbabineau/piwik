@@ -16,9 +16,5 @@ class Type extends \Piwik\Measurable\Type
     protected $description = 'WebsiteMeasurable_WebsiteDescription';
     protected $howToSetupUrl = '?module=CoreAdminHome&action=trackingCodeGenerator';
 
-
-    protected $defaultFields = array(
-        'name', 'url', ''
-    );
 }
 

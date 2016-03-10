@@ -18,7 +18,6 @@ use Piwik\Nonce;
 use Piwik\Notification;
 use Piwik\Piwik;
 use Piwik\Plugin;
-use Piwik\Settings\Manager as SettingsManager;
 use Piwik\Translation\Translator;
 use Piwik\Url;
 use Piwik\Version;
@@ -51,6 +50,20 @@ class Controller extends Plugin\ControllerAdmin
         $this->pluginsSettings = $pluginsSettings;
 
         parent::__construct();
+    }
+
+    public function adminPluginSettings()
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        return $this->renderTemplate('pluginSettings', array('mode' => 'admin'));
+    }
+
+    public function userPluginSettings()
+    {
+        Piwik::checkUserIsNotAnonymous();
+
+        return $this->renderTemplate('pluginSettings', array('mode' => 'user'));
     }
 
     public function marketplace()
@@ -440,7 +453,7 @@ class Controller extends Plugin\ControllerAdmin
             $message = $this->translator->translate('CorePluginsAdmin_SuccessfullyActicated', array($pluginName));
             if ($this->pluginsSettings->hasSystemPluginSettingsForCurrentUser($pluginName)) {
                 $target   = sprintf('<a href="index.php%s#%s">',
-                    Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreAdminHome', 'action' => 'adminPluginSettings')),
+                    Url::getCurrentQueryStringWithParametersModified(array('module' => 'CorePluginsAdmin', 'action' => 'adminPluginSettings')),
                     $pluginName);
                 $message .= ' ' . $this->translator->translate('CorePluginsAdmin_ChangeSettingsPossible', array($target, '</a>'));
             }

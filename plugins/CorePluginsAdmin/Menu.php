@@ -18,6 +18,16 @@ use Piwik\Piwik;
 class Menu extends \Piwik\Plugin\Menu
 {
 
+    /**
+     * @var PluginsSettings
+     */
+    private $pluginsSettings;
+
+    public function __construct(PluginsSettings $pluginsSettings)
+    {
+        $this->pluginsSettings = $pluginsSettings;
+    }
+
     public function configureAdminMenu(MenuAdmin $menu)
     {
         $hasSuperUserAcess    = Piwik::hasUserSuperUserAccess();
@@ -44,30 +54,40 @@ class Menu extends \Piwik\Plugin\Menu
             $menu->addManageItem(Piwik::translate('General_Plugins') . $pluginsUpdateMessage,
                                    $this->urlForAction('plugins', array('activated' => '')),
                                    $order = 4);
+
+
+            if ($this->pluginsSettings->hasSystemPluginsSettingsForCurrentUser()) {
+                $menu->addSettingsItem('CoreAdminHome_PluginSettings',
+                    $this->urlForAction('adminPluginSettings'),
+                    $order = 7);
+            }
+            if (CorePluginsAdmin::isMarketplaceEnabled()) {
+                $menu->addManageItem('CorePluginsAdmin_Marketplace',
+                    $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'admin')),
+                    $order = 12);
+            }
         }
-
-
-        if (Piwik::hasUserSuperUserAccess() && CorePluginsAdmin::isMarketplaceEnabled()) {
-            $menu->addManageItem('CorePluginsAdmin_Marketplace',
-                $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'admin')),
-                $order = 12);
-        }
-    }
-
-    private function isAllowedToSeeMarketPlace()
-    {
-        $isAnonymous          = Piwik::isUserIsAnonymous();
-        $isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
-
-        return $isMarketplaceEnabled && !$isAnonymous;
     }
 
     public function configureUserMenu(MenuUser $menu)
     {
-        if ($this->isAllowedToSeeMarketPlace()) {
+        $isAnonymous = Piwik::isUserIsAnonymous();
+
+        if ($isAnonymous) {
+            return;
+        }
+
+        if (CorePluginsAdmin::isMarketplaceEnabled()) {
             $menu->addPlatformItem('CorePluginsAdmin_Marketplace',
                                    $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'user')),
                                    $order = 5);
+        }
+
+
+        if ($this->pluginsSettings->hasUserPluginsSettingsForCurrentUser()) {
+            $menu->addPersonalItem('CoreAdminHome_PluginSettings',
+                $this->urlForAction('userPluginSettings'),
+                $order = 15);
         }
     }
 }

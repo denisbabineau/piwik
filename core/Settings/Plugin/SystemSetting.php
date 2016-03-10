@@ -24,35 +24,21 @@ use Piwik\Settings\Storage;
  */
 class SystemSetting extends Setting
 {
+
     /**
      * Constructor.
      *
-     * @param string $name The persisted name of the setting.
-     * @param string $title The display name of the setting.
+     * @param string $name The setting's persisted name.
+     * @param string $title The setting's display name.
      */
-    public function __construct($name, $title)
+    public function __construct($config, $pluginName)
     {
-        parent::__construct($name, $title);
-
-        $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());
-    }
-
-    public function setPluginName($pluginName)
-    {
-        parent::setPluginName($pluginName);
+        parent::__construct($config, $pluginName);
 
         $factory = new Storage\Factory();
         $this->storage = $factory->getPluginStorage($this->pluginName);
-    }
 
-    /**
-     * Set whether setting is writable or not. For example to hide setting from the UI set it to false.
-     *
-     * @param bool $isWritable
-     */
-    public function setIsWritableByCurrentUser($isWritable)
-    {
-        $this->isWritableByCurrentUser = (bool) $isWritable;
+        $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());
     }
 
     /**
@@ -70,16 +56,6 @@ class SystemSetting extends Setting
         return parent::isWritableByCurrentUser();
     }
 
-    /**
-     * Returns the display order. System settings are displayed before user settings.
-     *
-     * @return int
-     */
-    public function getOrder()
-    {
-        return 30;
-    }
-
     public function getValue()
     {
         $defaultValue = parent::getValue(); // we access value first to make sure permissions are checked
@@ -88,7 +64,7 @@ class SystemSetting extends Setting
 
         if (isset($configValue)) {
             $defaultValue = $configValue;
-            settype($defaultValue, $this->type);
+            settype($defaultValue, $this->config->type);
         }
 
         return $defaultValue;
@@ -104,8 +80,8 @@ class SystemSetting extends Setting
     {
         $config = Config::getInstance()->{$this->pluginName};
 
-        if (!empty($config) && array_key_exists($this->name, $config)) {
-            return $config[$this->name];
+        if (!empty($config) && array_key_exists($this->key, $config)) {
+            return $config[$this->key];
         }
     }
 

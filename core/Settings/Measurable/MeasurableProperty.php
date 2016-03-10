@@ -28,20 +28,18 @@ class MeasurableProperty extends \Piwik\Settings\Setting
      * @param string $title The display name of the setting.
      * @param int $idSite The idSite this setting belongs to.
      */
-    public function __construct($name, $title)
+    public function __construct($config, $pluginName, $idSite)
     {
-        parent::__construct($name, $title);
-
-        // when no idSite is set yet, likely a site is created and this requires SuperUserAccess
-        $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
-    }
-
-    public function setIdSite($idSite)
-    {
-        // a site was created, to edit the site, admin access is needed.
+        parent::__construct($config, $pluginName);
 
         $this->idSite = $idSite;
-        $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);
+
+        if (!empty($idSite)) {
+            $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);
+        } else {
+            // when no idSite is set yet, likely a site is created and this requires SuperUserAccess
+            $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
+        }
 
         if (!isset($this->storage)) {
             $storageFactory = new Storage\Factory();

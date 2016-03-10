@@ -10,10 +10,11 @@ namespace Piwik\Settings\Measurable;
 
 use Piwik\Db;
 use Piwik\Piwik;
-use Piwik\Settings\Setting;
+use Piwik\Settings\SettingConfig;
 use Piwik\Settings\Settings;
 use Piwik\Settings\Storage;
 use Piwik\Site;
+use Exception;
 
 /**
  * Base class of all plugin settings providers. Plugins that define their own configuration settings
@@ -40,6 +41,9 @@ abstract class MeasurableSettings extends Settings
 
     /**
      * Constructor.
+     * @param int $idSite If creating settings for a new site that is not created yet, use idSite = 0
+     * @param string|null $idType If null, idType will be detected from idSite
+     * @throws Exception
      */
     public function __construct($idSite, $idType = null)
     {
@@ -47,33 +51,38 @@ abstract class MeasurableSettings extends Settings
 
         $this->idSite = (int) $idSite;
 
-        if (isset($idType)) {
+        if (!empty($idType)) {
             $this->idType = $idType;
         } elseif (!empty($idSite)) {
             $this->idType = Site::getTypeFor($idSite);
         } else {
-            throw new \Exception('No type specified in ' . get_class($this));
+            throw new Exception('No idType specified for ' . get_class($this));
         }
 
         $this->init();
     }
 
-    protected function hasType($typeId)
+    protected function hasMeasurableType($typeId)
     {
         return $typeId === $this->idType;
     }
 
-    public function addSetting(Setting $setting)
+    protected function makeMeasurableSetting(SettingConfig $config)
     {
-        if (!$setting instanceof MeasurableSetting) {
-            throw new \Exception('Only a MeasurableSetting can be added to MeasurableSettings');
-        }
+        $setting = new MeasurableSetting($config, $this->pluginName, $this->idSite);
 
-        if (!empty($this->idSite)) {
-            $setting->setIdSite($this->idSite);
-        }
+        $this->addSetting($setting);
 
-        parent::addSetting($setting);
+        return $setting;
+    }
+
+    protected function makeMeasurableProperty(SettingConfig $config)
+    {
+        $setting = new MeasurableProperty($config, $this->pluginName, $this->idSite);
+
+        $this->addSetting($setting);
+
+        return $setting;
     }
 
     /**

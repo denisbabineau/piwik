@@ -481,13 +481,13 @@ describe("UIIntegrationTest", function () { // TODO: Rename to Piwik?
 
     it('should load the plugin settings admin page correctly', function (done) {
         expect.screenshot('admin_plugin_settings').to.be.captureSelector('.pageWrap', function (page) {
-            page.load("?" + generalParams + "&module=CoreAdminHome&action=adminPluginSettings");
+            page.load("?" + generalParams + "&module=CorePluginsAdmin&action=adminPluginSettings");
         }, done);
     });
 
     it('should load the plugin settings user page correctly', function (done) {
         expect.screenshot('user_plugin_settings').to.be.captureSelector('.pageWrap', function (page) {
-            page.load("?" + generalParams + "&module=CoreAdminHome&action=userPluginSettings");
+            page.load("?" + generalParams + "&module=CorePluginsAdmin&action=userPluginSettings");
         }, done);
     });
 

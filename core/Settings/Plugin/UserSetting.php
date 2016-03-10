@@ -18,8 +18,6 @@ use Piwik\Settings\Storage;
 /**
  * Describes a per user setting. Each user will be able to change this setting for themselves,
  * but not for other users.
- *
- * @api
  */
 class UserSetting extends Setting
 {
@@ -38,19 +36,14 @@ class UserSetting extends Setting
      * @param string $title The setting's display name.
      * @param null|string $userLogin The user this setting applies to. Will default to the current user login.
      */
-    public function __construct($name, $title, $userLogin = null)
+    public function __construct($config, $pluginName, $userLogin)
     {
-        parent::__construct($name, $title);
-
-        $this->setUserLogin($userLogin);
-    }
-
-    public function setPluginName($pluginName)
-    {
-        parent::setPluginName($pluginName);
+        parent::__construct($config, $pluginName);
 
         $factory = new Storage\Factory();
         $this->storage = $factory->getPluginStorage($this->pluginName);
+
+        $this->setUserLogin($userLogin);
     }
 
     /**
@@ -64,39 +57,20 @@ class UserSetting extends Setting
             return $this->hasWritePermission;
         }
 
-        // performance improvement, do not detect this in __construct otherwise likely "big" query to DB.
+        // performance improvement, do not detect this in __construct otherwise likely rather "big" query to DB.
         $this->hasWritePermission = Piwik::isUserHasSomeViewAccess();
 
         return $this->hasWritePermission;
     }
 
     /**
-     * Returns the display order. User settings are displayed after system settings.
+     * Set whether setting is writable or not. For example to hide setting from the UI set it to false.
      *
-     * @return int
+     * @param bool $isWritable
      */
-    public function getOrder()
+    public function setIsWritableByCurrentUser($isWritable)
     {
-        return 60;
-    }
-
-    private function buildUserSettingName($name, $userLogin = null)
-    {
-        if (empty($userLogin)) {
-            $userLogin = Piwik::getCurrentUserLogin();
-        }
-
-        // the asterisk tag is indeed important here and better than an underscore. Imagine a plugin has the settings
-        // "api_password" and "api". A user having the login "_password" could otherwise under circumstances change the
-        // setting for "api" although he is not allowed to. It is not so important at the moment because only alNum is
-        // currently allowed as a name this might change in the future.
-        $appendix = '#' . $userLogin . '#';
-
-        if (Common::stringEndsWith($name, $appendix)) {
-            return $name;
-        }
-
-        return $name . $appendix;
+        $this->hasWritePermission = (bool) $isWritable;
     }
 
     /**
@@ -108,12 +82,27 @@ class UserSetting extends Setting
      */
     public function setUserLogin($userLogin)
     {
-        if (!empty($userLogin) && !Piwik::hasUserSuperUserAccessOrIsTheUser($userLogin)) {
+        if (!Piwik::hasUserSuperUserAccessOrIsTheUser($userLogin)) {
             throw new \Exception('You do not have the permission to read the settings of a different user');
         }
 
         $this->userLogin = $userLogin;
-        $this->key       = $this->buildUserSettingName($this->name, $userLogin);
+        $this->key       = $this->buildUserSettingName($this->config->getName(), $userLogin);
+    }
+
+    private function buildUserSettingName($name, $userLogin)
+    {
+        // the asterisk tag is indeed important here and better than an underscore. Imagine a plugin has the settings
+        // "api_password" and "api". A user having the login "_password" could otherwise under circumstances change the
+        // setting for "api" although he is not allowed to. It is not so important at the moment because only alNum is
+        // currently allowed as a name this might change in the future.
+        $appendix = '#' . $userLogin . '#';
+
+        if (Common::stringEndsWith($name, $appendix)) {
+            return $name;
+        }
+
+        return $name . $appendix;
     }
 
     /**

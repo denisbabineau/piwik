@@ -1,0 +1,25 @@
+
+{% extends mode == 'user' ? "user.twig" : "admin.twig" %}
+
+{% set title %}
+{% if mode == 'user' -%}
+    {{ 'CoreAdminHome_PersonalPluginSettings'|translate }}
+{%- else -%}
+    {{ 'CoreAdminHome_SystemPluginSettings'|translate }}
+{% endif %}
+{% endset %}
+
+{% block content %}
+
+    {% import 'macros.twig' as piwik %}
+    {% import 'ajaxMacros.twig' as ajax %}
+    {% import 'settingsMacros.twig' as settingsMacro %}
+
+    <h2 piwik-enriched-headline>{{ title }}</h2>
+
+    <div piwik-plugin-settings mode="{{ mode }}"></div>
+
+    {{ ajax.errorDiv('ajaxErrorPluginSettings') }}
+    {{ ajax.loadingDiv('ajaxLoadingPluginSettings') }}
+
+{% endblock %}

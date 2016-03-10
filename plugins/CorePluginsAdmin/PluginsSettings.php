@@ -38,7 +38,7 @@ class PluginsSettings
      */
     public function getPluginSettingsForCurrentUser()
     {
-        $settings = $this->settingsProvider->getAllPluginsSettings();
+        $settings = $this->settingsProvider->getAllPluginSettings();
 
         return array_filter($settings, function ($pluginSettings) {
             /** @var PluginSettings $pluginSettings */
@@ -54,6 +54,48 @@ class PluginsSettings
         return in_array($pluginName, $pluginNames);
     }
 
+    public function getAllWritableSystemSettings()
+    {
+        $pluginSettings = $this->settingsProvider->getAllPluginSettings();
+
+        $systemSettings = array();
+
+        foreach ($pluginSettings as $pluginName => $settings) {
+            foreach ($settings->getSettingsWritableByCurrentUser() as $writableSetting) {
+                if ($writableSetting instanceof SystemSetting) {
+                    if (!isset($systemSettings[$pluginName])) {
+                        $systemSettings[$pluginName] = array();
+                    }
+
+                    $systemSettings[$pluginName][] = $writableSetting;
+                }
+            }
+        }
+
+        return $systemSettings;
+    }
+
+    public function getAllWritableUserSettings()
+    {
+        $pluginSettings = $this->settingsProvider->getAllPluginSettings();
+
+        $userSettings = array();
+
+        foreach ($pluginSettings as $pluginName => $settings) {
+            foreach ($settings->getSettingsWritableByCurrentUser() as $writableSetting) {
+                if ($writableSetting instanceof UserSetting) {
+                    if (!isset($userSettings[$pluginName])) {
+                        $userSettings[$pluginName] = array();
+                    }
+
+                    $userSettings[$pluginName][] = $writableSetting;
+                }
+            }
+        }
+
+        return $userSettings;
+    }
+
     /**
      * Detects whether there are user settings for activated plugins available that the current user can change.
      *
@@ -61,34 +103,14 @@ class PluginsSettings
      */
     public function hasUserPluginsSettingsForCurrentUser()
     {
-        $settings = $this->getPluginSettingsForCurrentUser();
+        $settings = $this->getAllWritableUserSettings();
 
-        foreach ($settings as $setting) {
-            foreach ($setting->getSettingsWritableByCurrentUser() as $set) {
-                if ($set instanceof UserSetting) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return !empty($settings);
     }
 
     public function getPluginNamesHavingSystemSettings()
     {
-        $settings = $this->getPluginSettingsForCurrentUser();
-        $plugins  = array();
-
-        foreach ($settings as $pluginName => $setting) {
-            foreach ($setting->getSettingsWritableByCurrentUser() as $set) {
-                if ($set instanceof SystemSetting) {
-                    $plugins[] = $pluginName;
-                    break;
-                }
-            }
-        }
-
-        return array_unique($plugins);
+        return array_keys($this->getAllWritableSystemSettings());
     }
 
     /**
@@ -98,7 +120,7 @@ class PluginsSettings
      */
     public function hasSystemPluginsSettingsForCurrentUser()
     {
-        $settings = $this->getPluginNamesHavingSystemSettings();
+        $settings = $this->getAllWritableSystemSettings();
 
         return !empty($settings);
     }

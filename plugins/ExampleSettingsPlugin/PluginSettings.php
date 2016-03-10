@@ -8,147 +8,147 @@
 
 namespace Piwik\Plugins\ExampleSettingsPlugin;
 
-use Piwik\Settings\Plugin\SystemSetting;
-use Piwik\Settings\Plugin\UserSetting;
+use Piwik\Settings\Setting;
+use Piwik\Settings\SettingConfig;
 
 /**
  * Defines Settings for ExampleSettingsPlugin.
  *
  * Usage like this:
- * $settings = new PluginSettings('ExampleSettingsPlugin');
+ * $settings = new PluginSettings();
  * $settings->autoRefresh->getValue();
  * $settings->metric->getValue();
  */
 class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 {
-    /** @var UserSetting */
+    /** @var Setting */
     public $autoRefresh;
 
-    /** @var UserSetting */
+    /** @var Setting */
     public $refreshInterval;
 
-    /** @var UserSetting */
+    /** @var Setting */
     public $color;
 
-    /** @var SystemSetting */
+    /** @var Setting */
     public $metric;
 
-    /** @var SystemSetting */
+    /** @var Setting */
     public $browsers;
 
-    /** @var SystemSetting */
+    /** @var Setting */
     public $description;
 
-    /** @var SystemSetting */
+    /** @var Setting */
     public $password;
 
     protected function init()
     {
         // User setting --> checkbox converted to bool
-        $this->createAutoRefreshSetting();
+        $this->autoRefresh = $this->createAutoRefreshSetting();
 
         // User setting --> textbox converted to int defining a validator and filter
-        $this->createRefreshIntervalSetting();
+        $this->refreshInterval = $this->createRefreshIntervalSetting();
 
         // User setting --> radio
-        $this->createColorSetting();
+        $this->color = $this->createColorSetting();
 
         // System setting --> allows selection of a single value
-        $this->createMetricSetting();
+        $this->metric = $this->createMetricSetting();
 
         // System setting --> allows selection of multiple values
-        $this->createBrowsersSetting();
+        $this->browsers = $this->createBrowsersSetting();
 
         // System setting --> textarea
-        $this->createDescriptionSetting();
+        $this->description = $this->createDescriptionSetting();
 
         // System setting --> textarea
-        $this->createPasswordSetting();
+        $this->password = $this->createPasswordSetting();
     }
 
     private function createAutoRefreshSetting()
     {
-        $this->autoRefresh        = new UserSetting('autoRefresh', 'Auto refresh');
-        $this->autoRefresh->type  = static::TYPE_BOOL;
-        $this->autoRefresh->uiControlType = static::CONTROL_CHECKBOX;
-        $this->autoRefresh->description   = 'If enabled, the value will be automatically refreshed depending on the specified interval';
-        $this->autoRefresh->defaultValue  = false;
+        $autoRefresh = new SettingConfig('autoRefresh', 'Auto refresh');
+        $autoRefresh->type = SettingConfig::TYPE_BOOL;
+        $autoRefresh->uiControlType = SettingConfig::CONTROL_CHECKBOX;
+        $autoRefresh->description = 'If enabled, the value will be automatically refreshed depending on the specified interval';
+        $autoRefresh->defaultValue = false;
 
-        $this->addSetting($this->autoRefresh);
+        return $this->makeUserSetting($autoRefresh);
     }
 
     private function createRefreshIntervalSetting()
     {
-        $this->refreshInterval        = new UserSetting('refreshInterval', 'Refresh Interval');
-        $this->refreshInterval->type  = static::TYPE_INT;
-        $this->refreshInterval->uiControlType = static::CONTROL_TEXT;
-        $this->refreshInterval->uiControlAttributes = array('size' => 3);
-        $this->refreshInterval->description     = 'Defines how often the value should be updated';
-        $this->refreshInterval->inlineHelp      = 'Enter a number which is >= 15';
-        $this->refreshInterval->defaultValue    = '30';
-        $this->refreshInterval->validate = function ($value, $setting) {
+        $refreshInterval = new SettingConfig('refreshInterval', 'Refresh Interval');
+        $refreshInterval->type  = SettingConfig::TYPE_INT;
+        $refreshInterval->uiControlType = SettingConfig::CONTROL_TEXT;
+        $refreshInterval->uiControlAttributes = array('size' => 3);
+        $refreshInterval->description = 'Defines how often the value should be updated';
+        $refreshInterval->inlineHelp  = 'Enter a number which is >= 15';
+        $refreshInterval->defaultValue = '30';
+        $refreshInterval->validate = function ($value, $setting) {
             if ($value < 15) {
                 throw new \Exception('Value is invalid');
             }
         };
 
-        $this->addSetting($this->refreshInterval);
+        return $this->makeUserSetting($refreshInterval);
     }
 
     private function createColorSetting()
     {
-        $this->color        = new UserSetting('color', 'Color');
-        $this->color->uiControlType = static::CONTROL_RADIO;
-        $this->color->description   = 'Pick your favourite color';
-        $this->color->availableValues  = array('red' => 'Red', 'blue' => 'Blue', 'green' => 'Green');
+        $color = new SettingConfig('color', 'Color');
+        $color->uiControlType = SettingConfig::CONTROL_RADIO;
+        $color->description = 'Pick your favourite color';
+        $color->availableValues = array('red' => 'Red', 'blue' => 'Blue', 'green' => 'Green');
 
-        $this->addSetting($this->color);
+        return $this->makeUserSetting($color);
     }
 
     private function createMetricSetting()
     {
-        $this->metric        = new SystemSetting('metric', 'Metric to display');
-        $this->metric->type  = static::TYPE_STRING;
-        $this->metric->uiControlType = static::CONTROL_SINGLE_SELECT;
-        $this->metric->availableValues  = array('nb_visits' => 'Visits', 'nb_actions' => 'Actions', 'visitors' => 'Visitors');
-        $this->metric->introduction  = 'Only Super Users can change the following settings:';
-        $this->metric->description   = 'Choose the metric that should be displayed in the browser tab';
-        $this->metric->defaultValue  = 'nb_visits';
+        $metric = new SettingConfig('metric', 'Metric to display');
+        $metric->type = SettingConfig::TYPE_STRING;
+        $metric->uiControlType = SettingConfig::CONTROL_SINGLE_SELECT;
+        $metric->availableValues = array('nb_visits' => 'Visits', 'nb_actions' => 'Actions', 'visitors' => 'Visitors');
+        $metric->introduction = 'Only Super Users can change the following settings:';
+        $metric->description = 'Choose the metric that should be displayed in the browser tab';
+        $metric->defaultValue = 'nb_visits';
 
-        $this->addSetting($this->metric);
+        return $this->makeSystemSetting($metric);
     }
 
     private function createBrowsersSetting()
     {
-        $this->browsers        = new SystemSetting('browsers', 'Supported Browsers');
-        $this->browsers->type  = static::TYPE_ARRAY;
-        $this->browsers->uiControlType = static::CONTROL_MULTI_SELECT;
-        $this->browsers->availableValues  = array('firefox' => 'Firefox', 'chromium' => 'Chromium', 'safari' => 'safari');
-        $this->browsers->description   = 'The value will be only displayed in the following browsers';
-        $this->browsers->defaultValue  = array('firefox', 'chromium', 'safari');
+        $browsers = new SettingConfig('browsers', 'Supported Browsers');
+        $browsers->type = SettingConfig::TYPE_ARRAY;
+        $browsers->uiControlType = SettingConfig::CONTROL_MULTI_SELECT;
+        $browsers->availableValues = array('firefox' => 'Firefox', 'chromium' => 'Chromium', 'safari' => 'safari');
+        $browsers->description = 'The value will be only displayed in the following browsers';
+        $browsers->defaultValue = array('firefox', 'chromium', 'safari');
 
-        $this->addSetting($this->browsers);
+        return $this->makeSystemSetting($browsers);
     }
 
     private function createDescriptionSetting()
     {
-        $this->description = new SystemSetting('description', 'Description for value');
-        $this->description->uiControlType = static::CONTROL_TEXTAREA;
-        $this->description->description   = 'This description will be displayed next to the value';
-        $this->description->defaultValue  = "This is the value: \nAnother line";
+        $description = new SettingConfig('description', 'Description for value');
+        $description->uiControlType = SettingConfig::CONTROL_TEXTAREA;
+        $description->description = 'This description will be displayed next to the value';
+        $description->defaultValue = "This is the value: \nAnother line";
 
-        $this->addSetting($this->description);
+        return $this->makeSystemSetting($description);
     }
 
     private function createPasswordSetting()
     {
-        $this->password = new SystemSetting('password', 'API password');
-        $this->password->uiControlType = static::CONTROL_PASSWORD;
-        $this->password->description   = 'Password for the 3rd API where we fetch the value';
-        $this->password->transform     = function ($value) {
+        $password = new SettingConfig('password', 'API password');
+        $password->uiControlType = SettingConfig::CONTROL_PASSWORD;
+        $password->description = 'Password for the 3rd API where we fetch the value';
+        $password->transform = function ($value) {
             return sha1($value . 'salt');
         };
 
-        $this->addSetting($this->password);
+        return $this->makeSystemSetting($password);
     }
 }

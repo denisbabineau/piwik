@@ -85,15 +85,15 @@ class Storage
      * @throws \Exception If the setting does not exist or if the current user is not allowed to change the value
      *                    of this setting.
      */
-    public function getValue(Setting $setting)
+    public function getValue($key, $defaultValue)
     {
         $this->loadSettingsIfNotDoneYet();
 
-        if (array_key_exists($setting->getKey(), $this->settingsValues)) {
-            return $this->settingsValues[$setting->getKey()];
+        if (array_key_exists($key, $this->settingsValues)) {
+            return $this->settingsValues[$key];
         }
 
-        return $setting->defaultValue;
+        return $defaultValue;
     }
 
     /**
@@ -109,25 +109,23 @@ class Storage
      * @throws \Exception If the setting does not exist or if the current user is not allowed to change the value
      *                    of this setting.
      */
-    public function setValue(Setting $setting, $value)
+    public function setValue($key, $value)
     {
         $this->loadSettingsIfNotDoneYet();
 
         $this->isDirty = true;
-        $this->settingsValues[$setting->getKey()] = $value;
+        $this->settingsValues[$key] = $value;
     }
 
     /**
      * Unsets a setting value in memory. To persist the change, {@link save()} must be
      * called afterwards, otherwise the change has no effect.
      *
-     * @param Setting $setting
+     * @param string $key
      */
-    public function deleteValue(Setting $setting)
+    public function deleteValue($key)
     {
         $this->loadSettingsIfNotDoneYet();
-
-        $key = $setting->getKey();
 
         if (array_key_exists($key, $this->settingsValues)) {
             unset($this->settingsValues[$key]);

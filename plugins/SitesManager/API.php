@@ -18,6 +18,8 @@ use Piwik\Metrics\Formatter;
 use Piwik\Network\IPUtils;
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Plugin\SettingsProvider;
+use Piwik\Plugins\CorePluginsAdmin\SettingsMetadata;
 use Piwik\Settings\Measurable\MeasurableSettings;
 use Piwik\ProxyHttp;
 use Piwik\Scheduler\Scheduler;
@@ -611,12 +613,32 @@ class API extends \Piwik\Plugin\API
         return (int) $idSite;
     }
 
+    public function getMeasurableSettings($idSite, $idType = false)
+    {
+        $settingsProvider = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
+        $measurableSettings = $settingsProvider->getAllMeasurableSettings($idSite, $idType);
+
+        $writableSettings = array();
+
+        foreach ($measurableSettings as $pluginName => $settings) {
+            foreach ($settings->getSettingsWritableByCurrentUser() as $writableSetting) {
+                if (!isset($systemSettings[$pluginName])) {
+                    $writableSettings[$pluginName] = array();
+                }
+
+                $writableSettings[$pluginName][] = $writableSetting;
+            }
+        }
+        $settingsMetadata = new SettingsMetadata();
+        return $settingsMetadata->formatSettings($writableSettings);
+    }
+
     private function validateMeasurableSettings($idSite, $idType, $settings)
     {
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
         foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->getName();
+            $name = $measurableSetting->getConfig()->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
             }
@@ -630,7 +652,7 @@ class API extends \Piwik\Plugin\API
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
         foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->getName();
+            $name = $measurableSetting->getConfig()->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
             }
