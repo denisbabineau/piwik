@@ -7,9 +7,9 @@
 (function () {
     angular.module('piwikApp').controller('SitesManagerSiteController', SitesManagerSiteController);
 
-    SitesManagerSiteController.$inject = ['$scope', '$filter', 'sitesManagerApiHelper', 'sitesManagerTypeModel'];
+    SitesManagerSiteController.$inject = ['$scope', '$filter', 'sitesManagerApiHelper', 'sitesManagerTypeModel', 'piwikApi'];
 
-    function SitesManagerSiteController($scope, $filter, sitesManagerApiHelper, sitesManagerTypeModel) {
+    function SitesManagerSiteController($scope, $filter, sitesManagerApiHelper, sitesManagerTypeModel, piwikApi) {
 
         var translate = $filter('translate');
 
@@ -23,6 +23,7 @@
                     $scope.currentType = type;
                     $scope.howToSetupUrl = type.howToSetupUrl;
                     $scope.isInternalSetupUrl = '?' === ('' + type.howToSetupUrl).substr(0, 1);
+                    $scope.measurableTypeSettings = type.settings;
                 } else {
                     $scope.currentType = {name: $scope.site.type};
                 }
@@ -59,6 +60,10 @@
 
                 $scope.site.editMode = true;
                 $scope.informSiteIsBeingEdited();
+
+                piwikApi.fetch({method: 'SitesManager.getSettings', idSite: $scope.site.idSite}).then(function (settings) {
+                    $scope.measurableSettings = settings;
+                });
             }
         };
 
@@ -145,6 +150,8 @@
             $scope.site.timezone = $scope.globalSettings.defaultTimezone;
             $scope.site.currency = $scope.globalSettings.defaultCurrency;
             $scope.site.ecommerce = "0";
+
+            $scope.measurableSettings = $scope.measurableTypeSettings;
 
             updateSiteWithSiteSearchConfig();
         };

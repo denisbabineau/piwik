@@ -51,6 +51,10 @@ abstract class Setting
      */
     protected $config;
 
+    protected $configureCallback;
+
+    protected $name;
+
     /**
      * Constructor.
      *
@@ -65,6 +69,20 @@ abstract class Setting
         $this->config = $config;
         $this->key = $config->getName();
         $this->pluginName = $pluginName;
+    }
+
+    public function getName()
+    {
+        return $this->configure()->getName();
+    }
+
+    public function configure()
+    {
+        if ($this->configureCallback) {
+            call_user_func($this->configureCallback, $this->config);
+        }
+
+        return $this->config;
     }
 
     public function getConfig()

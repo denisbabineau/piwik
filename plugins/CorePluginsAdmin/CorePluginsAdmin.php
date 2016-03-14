@@ -30,6 +30,7 @@ class CorePluginsAdmin extends \Piwik\Plugin
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/marketplace.less";
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/plugins_admin.less";
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/plugin-details.less";
+        $stylesheets[] = "plugins/CorePluginsAdmin/angularjs/plugin-settings/plugin-settings.directive.less";
     }
 
     public static function isMarketplaceEnabled()

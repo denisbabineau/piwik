@@ -41,9 +41,12 @@ class MeasurableProperty extends \Piwik\Settings\Setting
             $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
         }
 
-        if (!isset($this->storage)) {
-            $storageFactory = new Storage\Factory();
+        $storageFactory = new Storage\Factory();
+
+        if (!empty($idSite)) {
             $this->storage = $storageFactory->getMeasurableStorage($idSite);
+        } else {
+            $this->storage = $storageFactory->getNonPersistentStorage('site' . $idSite);
         }
     }
 }

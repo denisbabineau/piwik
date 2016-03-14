@@ -42,6 +42,14 @@ class Measurable implements BackendInterface
      */
     public function save($values)
     {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = implode(',', $value);
+            }
+        }
+
+        // TODO handle urls?
+
         $model = new Model();
         $model->updateSite($values, $this->idSite);
     }
@@ -49,7 +57,12 @@ class Measurable implements BackendInterface
     public function load()
     {
         if (!empty($this->idSite)) {
-            return Site::getSite($this->idSite);
+            $site = Site::getSite($this->idSite);
+
+            $urls = new Model();
+            $site['urls'] = $urls->getSiteUrlsFromId($this->idSite);
+
+            return $site;
         }
     }
 

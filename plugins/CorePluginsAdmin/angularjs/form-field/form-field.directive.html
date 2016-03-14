@@ -1,75 +1,75 @@
-<div class="form-group">
-    <p ng-if="setting.introduction"  class="settingIntroduction">{{ setting.introduction }}</p>
+<div class="form-group" ng-show="formField.showField">
+    <p ng-if="formField.introduction"  class="settingIntroduction">{{ formField.introduction }}</p>
 
-    <label ng-if="setting.uiControlType != 'checkbox'">{{ setting.title }}</label>
+    <label ng-if="formField.uiControlType != 'checkbox'" ng-bind-html="formField.title"></label>
 
-    <div class="form-help" ng-show="setting.inlineHelp">
-        {{ setting.inlineHelp }}
+    <div class="form-help" ng-show="formField.inlineHelp">
+        <span ng-repeat="helpText in formField.inlineHelp">
+            <span ng-bind-html="helpText"></span>
+            <br ng-show="!$last" />
+        </span>
 
-        <span ng-show="setting.defaultValue && setting.uiControlType != 'checkbox' && setting.uiControlType != 'radio'">
-            <br/>
+        <span ng-show="formField.defaultValue && formField.uiControlType != 'checkbox' && formField.uiControlType != 'radio'">
+            <br />
             {{ 'General_Default'|translate }}:
-            <span>{{setting.defaultValue|limitTo:50}}</span>
+            <span>{{formField.defaultValue|limitTo:50}}</span>
         </span>
     </div>
 
-    <select ng-if="setting.uiControlType == 'select'"
-            piwik-attributes="{{setting.uiControlAttributes}}"
-            name="{{ setting.name }}"
-            ng-model="setting.value"
-            ng-options="key as value for (key,value) in setting.availableValues"
-            ng-attr-multiple="setting.uiControlType == 'multiselect'">
+    <select ng-if="formField.uiControlType == 'select'"
+            name="{{ formField.name }}"
+            ng-model="formField.value"
+            ng-options="t.key as t.value group by t.group for t in formField.availableValues"
+            piwik-attributes="{{formField.uiControlAttributes}}">
     </select>
 
-    <select ng-if="setting.uiControlType == 'multiselect'"
+    <select ng-if="formField.uiControlType == 'multiselect'"
             multiple
-            piwik-attributes="{{setting.uiControlAttributes}}"
-            name="{{ setting.name }}"
-            ng-model="setting.value"
-            ng-options="key as value for (key,value) in setting.availableValues">
+            name="{{ formField.name }}"
+           <!-- ng-model="formField.value"-->
+            ng-options="t.key as t.value for t in formField.availableValues"
+            piwik-attributes="{{formField.uiControlAttributes}}">
     </select>
 
-    <textarea ng-if="setting.uiControlType == 'textarea'"
-              style="width: 376px; height: 250px;"
-              piwik-attributes="{{setting.uiControlAttributes}}"
-              name="{{ setting.name }}"
-    >{{ setting.value }}</textarea>
+    <textarea ng-if="formField.uiControlType == 'textarea'"
+              name="{{ formField.name }}"
+              piwik-attributes="{{formField.uiControlAttributes}}"
+    >{{ formField.value }}</textarea>
 
-    <label ng-if="setting.uiControlType == 'radio'"
-            ng-repeat="(key,value) in setting.availableValues"
+    <label ng-if="formField.uiControlType == 'radio'"
+            ng-repeat="(key,value) in formField.availableValues"
             class="radio">
-        <input ng-model="setting.value"
+        <input ng-model="formField.value"
                ng-value="key"
-               id="name-value-{{ index }}"
-               piwik-attributes="{{setting.uiControlAttributes}}"
                type="radio"
-               name="{{ setting.name }}" />
+               name="{{ formField.name }}"
+               piwik-attributes="{{formField.uiControlAttributes}}"
+        >
         {{ value }}
-        <span ng-show="setting.description" class='form-description'>{{ setting.description }}</span>
+        <span ng-show="formField.description" class='form-description'>{{ formField.description }}</span>
     </label>
 
-    <label ng-if="setting.uiControlType == 'checkbox'" class="checkbox">
-        <input id="name-value-{{ index }}"
-               ng-model="setting.value"
-               piwik-attributes="{{setting.uiControlAttributes}}"
+    <label ng-if="formField.uiControlType == 'checkbox'" class="checkbox">
+        <input ng-model="formField.value"
+               piwik-attributes="{{formField.uiControlAttributes}}"
                ng-value="1"
                type="checkbox"
-               name="{{ setting.name }}">
+               name="{{ formField.name }}">
 
-        {{ setting.title }}
+        <span ng-bind-html="formField.title"></span>
 
-        <span ng-show="setting.description" class='form-description'>{{ setting.description }}</span>
+        <span ng-show="formField.description" class='form-description'>{{ formField.description }}</span>
     </label>
 
-    <input ng-if="setting.uiControlType == 'text' || setting.uiControlType == 'password'"
-        piwik-attributes="{{setting.uiControlAttributes}}"
-            class="control_{{ setting.uiControlType }}"
-            type="{{ setting.uiControlType }}"
-            name="{{ setting.name }}"
-            value="{{setting.value}}"
-            >
+    <input ng-if="formField.uiControlType == 'text' || formField.uiControlType == 'password'"
+           class="control_{{ formField.uiControlType }}"
+           type="{{ formField.uiControlType }}"
+           name="{{ formField.name }}"
+           value="{{formField.value}}"
+           piwik-attributes="{{formField.uiControlAttributes}}"
+    >
 
-    <span ng-show="setting.uiControlType != 'checkbox' && setting.uiControlType != 'radio'"
-          class='form-description'>{{ setting.description }}</span>
+    <span ng-show="formField.uiControlType != 'checkbox' && formField.uiControlType != 'radio'"
+          class='form-description'>{{ formField.description }}</span>
 
 </div>

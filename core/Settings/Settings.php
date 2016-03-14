@@ -102,7 +102,7 @@ abstract class Settings
      */
     protected function addSetting(Setting $setting)
     {
-        $name = $setting->getConfig()->getName();
+        $name = $setting->getName();
 
         if (array_key_exists($name, $this->settings)) {
             throw new \Exception(sprintf('A setting with name "%s" does already exist for plugin "%s"', $name, $this->pluginName));

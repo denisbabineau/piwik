@@ -29,6 +29,7 @@ class SettingConfig
     const CONTROL_PASSWORD = 'password';
     const CONTROL_MULTI_SELECT  = 'multiselect';
     const CONTROL_SINGLE_SELECT = 'select';
+    const CONTROL_HIDDEN = 'hidden';
 
     /**
      * Describes the setting's PHP data type. When saved, setting values will always be casted to this
@@ -158,6 +159,19 @@ class SettingConfig
     public $title = '';
 
     /**
+     * Here you can define conditions so that certain form fields will be only shown when a certain condition
+     * is true. This condition is supposed to be evaluated on the client side dynamically. This way you can hide
+     * for example some fields depending on another field. For example if SiteSearch is disabled, fields to enter
+     * site search keywords is not needed anymore and can be disabled.
+     *
+     * For example 'sitesearch', or 'sitesearch && !use_sitesearch_default' where 'sitesearch' and 'use_sitesearch_default'
+     * are both values of fields.
+     *
+     * @var string
+     */
+    public $showIf;
+
+    /**
      * @var string
      */
     private $name;
@@ -165,7 +179,7 @@ class SettingConfig
     public function __construct($name, $title)
     {
         if (!ctype_alnum(str_replace('_', '', $name))) {
-            $msg = sprintf('The setting name "%s" in plugin "%s" is not valid. Only underscores, alpha and numerical characters are allowed', $setting->getName(), $this->pluginName);
+            $msg = sprintf('The setting name "%s" Only underscores, alpha and numerical characters are allowed', $name);
             throw new \Exception($msg);
         }
 

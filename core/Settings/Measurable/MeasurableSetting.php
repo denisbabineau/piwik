@@ -36,15 +36,16 @@ class MeasurableSetting extends \Piwik\Settings\Setting
 
         $this->idSite = $idSite;
 
+        $storageFactory = new Storage\Factory();
+
         if (!empty($idSite)) {
             $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);
+            $this->storage = $storageFactory->getMeasurableSettingsStorage($idSite);
         } else {
             // when no idSite is set yet, likely a site is created and this requires SuperUserAccess
             $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
+            $this->storage = $storageFactory->getNonPersistentStorage('site' . $idSite);
         }
-
-        $storageFactory = new Storage\Factory();
-        $this->storage = $storageFactory->getMeasurableSettingsStorage($idSite);
 
         $this->updateKey($pluginName);
     }

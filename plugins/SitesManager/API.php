@@ -613,16 +613,16 @@ class API extends \Piwik\Plugin\API
         return (int) $idSite;
     }
 
-    public function getMeasurableSettings($idSite, $idType = false)
+    public function getSettings($idSite)
     {
         $settingsProvider = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
-        $measurableSettings = $settingsProvider->getAllMeasurableSettings($idSite, $idType);
+        $measurableSettings = $settingsProvider->getAllMeasurableSettings($idSite, $idMeasurableType = false);
 
         $writableSettings = array();
 
         foreach ($measurableSettings as $pluginName => $settings) {
             foreach ($settings->getSettingsWritableByCurrentUser() as $writableSetting) {
-                if (!isset($systemSettings[$pluginName])) {
+                if (!isset($writableSettings[$pluginName])) {
                     $writableSettings[$pluginName] = array();
                 }
 
@@ -638,7 +638,7 @@ class API extends \Piwik\Plugin\API
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
         foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->getConfig()->getName();
+            $name = $measurableSetting->configure()->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
             }
@@ -652,7 +652,7 @@ class API extends \Piwik\Plugin\API
         $measurableSettings = new MeasurableSettings($idSite, $idType);
 
         foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->getConfig()->getName();
+            $name = $measurableSetting->configure()->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
             }

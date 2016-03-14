@@ -50,8 +50,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $view = new View('@SitesManager/measurable_type_settings');
 
-        $propSettings   = new MeasurableSettings($idSite, $idType);
-        $view->settings = $propSettings->getSettingsWritableByCurrentUser();
+//        $propSettings   = new MeasurableSettings($idSite, $idType);
+        $view->settings = array();
 
         return $view->render();
     }

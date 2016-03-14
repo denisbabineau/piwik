@@ -96,7 +96,7 @@ class SettingsProvider
             if ($component) {
                 return StaticContainer::getContainer()->make($component, array(
                     'idSite' => $idSite,
-                    'idType' => $idType
+                    'idMeasurableType' => $idType
                 ));
             }
         }
@@ -109,13 +109,13 @@ class SettingsProvider
      *
      * @return \Piwik\Settings\Measurable\MeasurableSettings[]   An array containing array([] => [setting instance]).
      */
-    public function getAllMeasurableSettings($idSite, $idType)
+    public function getAllMeasurableSettings($idSite, $idMeasurableType)
     {
         $pluginNames = $this->pluginManager->getActivatedPlugins();
         $byPluginName = array();
 
         foreach ($pluginNames as $plugin) {
-            $component = $this->getMeasurableSettings($plugin, $idSite, $idType);
+            $component = $this->getMeasurableSettings($plugin, $idSite, $idMeasurableType);
 
             if (!empty($component)) {
                 $byPluginName[$plugin] = $component;

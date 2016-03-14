@@ -25,6 +25,10 @@ use Exception;
  *
  * For an example, see the {@link Piwik\Plugins\ExampleSettingsPlugin\ExampleSettingsPlugin} plugin.
  *
+ * $MeasurableSettings->settingFooBar->getValue($id)
+ * $MeasurableSettings->settingFooBar->setValue($idSite, $test)
+ *
+ * $settingProvider->getMeasruableSettingForPlugin($pluginname, $idsite);
  * @api
  */
 abstract class MeasurableSettings extends Settings
@@ -37,24 +41,24 @@ abstract class MeasurableSettings extends Settings
     /**
      * @var string
      */
-    protected $idType;
+    protected $idMeasurableType;
 
     /**
      * Constructor.
      * @param int $idSite If creating settings for a new site that is not created yet, use idSite = 0
-     * @param string|null $idType If null, idType will be detected from idSite
+     * @param string|null $idMeasurableType If null, idType will be detected from idSite
      * @throws Exception
      */
-    public function __construct($idSite, $idType = null)
+    public function __construct($idSite, $idMeasurableType = null)
     {
         parent::__construct();
 
         $this->idSite = (int) $idSite;
 
-        if (!empty($idType)) {
-            $this->idType = $idType;
+        if (!empty($idMeasurableType)) {
+            $this->idMeasurableType = $idMeasurableType;
         } elseif (!empty($idSite)) {
-            $this->idType = Site::getTypeFor($idSite);
+            $this->idMeasurableType = Site::getTypeFor($idSite);
         } else {
             throw new Exception('No idType specified for ' . get_class($this));
         }
@@ -64,7 +68,7 @@ abstract class MeasurableSettings extends Settings
 
     protected function hasMeasurableType($typeId)
     {
-        return $typeId === $this->idType;
+        return $typeId === $this->idMeasurableType;
     }
 
     protected function makeMeasurableSetting(SettingConfig $config)

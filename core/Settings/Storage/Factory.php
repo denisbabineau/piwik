@@ -41,7 +41,7 @@ class Factory
     /**
      * @param string $type
      * @param string $id
-     * @return BackendInterface
+     * @return Storage
      * @throws \Exception
      */
     private function make($type, $id)
