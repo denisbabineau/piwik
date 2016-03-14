@@ -23,7 +23,10 @@
                     $scope.currentType = type;
                     $scope.howToSetupUrl = type.howToSetupUrl;
                     $scope.isInternalSetupUrl = '?' === ('' + type.howToSetupUrl).substr(0, 1);
-                    $scope.measurableTypeSettings = type.settings;
+
+                    if (isSiteNew()) {
+                        $scope.measurableSettings = type.settings;
+                    }
                 } else {
                     $scope.currentType = {name: $scope.site.type};
                 }
@@ -40,31 +43,20 @@
 
         var initModel = function() {
 
-            if(siteIsNew())
+            if (isSiteNew()) {
                 initNewSite();
-            else
-                initExistingSite();
+            }
 
-            $scope.site.editDialog = {};
             $scope.site.removeDialog = {};
         };
 
         var editSite = function () {
+            $scope.site.editMode = true;
 
-            if ($scope.siteIsBeingEdited) {
-
-                $scope.site.editDialog.show = true;
-                $scope.site.editDialog.title = translate('SitesManager_OnlyOneSiteAtTime', '"' + $scope.lookupCurrentEditSite().name + '"');
-
-            } else {
-
-                $scope.site.editMode = true;
-                $scope.informSiteIsBeingEdited();
-
-                piwikApi.fetch({method: 'SitesManager.getSettings', idSite: $scope.site.idSite}).then(function (settings) {
-                    $scope.measurableSettings = settings;
-                });
-            }
+            $scope.measurableSettings = [];
+            piwikApi.fetch({method: 'SitesManager.getSettings', idSite: $scope.site.idsite}).then(function (settings) {
+                $scope.measurableSettings = settings;
+            });
         };
 
         var saveSite = function() {
@@ -72,105 +64,64 @@
             var sendSiteSearchKeywordParams = $scope.site.sitesearch == '1' && !$scope.site.useDefaultSiteSearchParams;
             var sendSearchCategoryParameters = sendSiteSearchKeywordParams && $scope.customVariablesActivated;
 
-            var ajaxHandler = new ajaxHelper();
-            ajaxHandler.addParams({
-                module: 'API',
-                format: 'json'
-            }, 'GET');
-
-            if(siteIsNew()) {
-
-                ajaxHandler.addParams({
-                    method: 'SitesManager.addSite'
-                }, 'GET');
-
-            } else {
-
-                ajaxHandler.addParams({
-                    idSite: $scope.site.idsite,
-                    method: 'SitesManager.updateSite'
-                }, 'GET');
-            }
-
-            var settings = $('.typeSettings fieldset').serializeArray();
-
-            var flatSettings = '';
-            if (settings.length) {
-                flatSettings = {};
-                angular.forEach(settings, function (setting) {
-                    flatSettings[setting.name] = setting.value;
-                });
-            }
-
-            ajaxHandler.addParams({
+            var values = {
                 siteName: $scope.site.name,
                 timezone: $scope.site.timezone,
                 currency: $scope.site.currency,
-                ecommerce: $scope.site.ecommerce,
-                excludedIps: $scope.site.excluded_ips.join(','),
-                excludedQueryParameters: $scope.site.excluded_parameters.join(','),
-                excludedUserAgents: $scope.site.excluded_user_agents.join(','),
-                keepURLFragments: $scope.site.keep_url_fragment,
-                siteSearch: $scope.site.sitesearch,
                 type: $scope.site.type,
-                searchKeywordParameters: sendSiteSearchKeywordParams ? $scope.site.sitesearch_keyword_parameters.join(',') : null,
-                searchCategoryParameters: sendSearchCategoryParameters ? $scope.site.sitesearch_category_parameters.join(',') : null,
-                urls: $scope.site.alias_urls,
-                excludeUnknownUrls: $scope.site.exclude_unknown_urls,
-                settings: flatSettings
-            }, 'POST');
+                settingValues: {}
+            };
 
-            ajaxHandler.redirectOnSuccess($scope.redirectParams);
-            ajaxHandler.setLoadingElement();
-            ajaxHandler.send(true);
+            var isNewSite = isSiteNew();
+
+            var apiMethod = 'SitesManager.addSite';
+            if (!isNewSite) {
+                apiMethod = 'SitesManager.updateSite';
+                values.idSite = $scope.site.idsite;
+            }
+
+            angular.forEach($scope.measurableSettings, function (settings) {
+                if (!values['settingValues'][settings.pluginName]) {
+                    values['settingValues'][settings.pluginName] = [];
+                }
+
+                angular.forEach(settings.settings, function (setting) {
+                    var value = setting.value;
+                    if (value === false) {
+                        value = '0';
+                    }
+                    values['settingValues'][settings.pluginName].push({
+                        name: setting.name,
+                        value: value
+                    });
+                });
+            });
+
+            piwikApi.post({method: apiMethod}, values).then(function () {
+                $scope.site.editMode = false;
+
+                var UI = require('piwik/UI');
+                var notification = new UI.Notification();
+
+                var message = 'Website updated';
+                if (isNewSite) {
+                    message = 'Website created';
+                }
+
+                notification.show(message, {context: 'success'});
+                notification.scrollToNotification();
+            });
         };
 
-        var siteIsNew = function() {
+        var isSiteNew = function() {
             return angular.isUndefined($scope.site.idsite);
         };
 
         var initNewSite = function() {
-
-            $scope.informSiteIsBeingEdited();
-
             $scope.site.editMode = true;
             $scope.site.name = "Name";
-            $scope.site.alias_urls = [
-                "http://siteUrl.com/",
-                "http://siteUrl2.com/"
-            ];
-            $scope.site.exclude_unknown_urls = 0;
-            $scope.site.keep_url_fragment = "0";
-            $scope.site.excluded_ips = [];
-            $scope.site.excluded_parameters = [];
-            $scope.site.excluded_user_agents = [];
-            $scope.site.sitesearch_keyword_parameters = [];
-            $scope.site.sitesearch_category_parameters = [];
-            $scope.site.sitesearch = $scope.globalSettings.searchKeywordParametersGlobal.length ? "1" : "0";
             $scope.site.timezone = $scope.globalSettings.defaultTimezone;
             $scope.site.currency = $scope.globalSettings.defaultCurrency;
-            $scope.site.ecommerce = "0";
-
-            $scope.measurableSettings = $scope.measurableTypeSettings;
-
-            updateSiteWithSiteSearchConfig();
-        };
-
-        var initExistingSite = function() {
-
-            $scope.site.excluded_ips = sitesManagerApiHelper.commaDelimitedFieldToArray($scope.site.excluded_ips);
-            $scope.site.excluded_parameters = sitesManagerApiHelper.commaDelimitedFieldToArray($scope.site.excluded_parameters);
-            $scope.site.excluded_user_agents = sitesManagerApiHelper.commaDelimitedFieldToArray($scope.site.excluded_user_agents);
-            $scope.site.sitesearch_keyword_parameters = sitesManagerApiHelper.commaDelimitedFieldToArray($scope.site.sitesearch_keyword_parameters);
-            $scope.site.sitesearch_category_parameters = sitesManagerApiHelper.commaDelimitedFieldToArray($scope.site.sitesearch_category_parameters);
-
-            updateSiteWithSiteSearchConfig();
-        };
-
-        var updateSiteWithSiteSearchConfig = function() {
-
-            $scope.site.useDefaultSiteSearchParams =
-                $scope.globalSettings.searchKeywordParametersGlobal.length && !$scope.site.sitesearch_keyword_parameters.length;
         };
 
         var openDeleteDialog = function() {

@@ -59,7 +59,7 @@ class SettingsTest extends IntegrationTestCase
     public function test_addSetting_shouldAssignDefaultType_IfFieldIsGivenButNoType()
     {
         $setting = $this->buildUserSetting('myname', 'mytitle');
-        $setting->uiControlType = CorePluginTestSettings::CONTROL_MULTI_SELECT;
+        $setting->uiControl = CorePluginTestSettings::UI_CONTROL_MULTI_SELECT;
 
         $this->settings->addSetting($setting);
 
@@ -73,7 +73,7 @@ class SettingsTest extends IntegrationTestCase
 
         $this->settings->addSetting($setting);
 
-        $this->assertEquals(CorePluginTestSettings::CONTROL_MULTI_SELECT, $setting->uiControlType);
+        $this->assertEquals(CorePluginTestSettings::UI_CONTROL_MULTI_SELECT, $setting->uiControl);
     }
 
     public function test_addSetting_shouldAddAValidator_IfFieldOptionsAreGiven()
@@ -147,7 +147,7 @@ class SettingsTest extends IntegrationTestCase
         $this->setUser();
         $setting = $this->buildUserSetting('mysystem', 'mytitle');
         $setting->availableValues = array('allowed' => 'text', 'allowed2' => 'text2');
-        $setting->uiControlType        = PluginSettings::CONTROL_MULTI_SELECT;
+        $setting->uiControl        = PluginSettings::UI_CONTROL_MULTI_SELECT;
 
         $this->settings->addSetting($setting);
 
@@ -159,7 +159,7 @@ class SettingsTest extends IntegrationTestCase
         $this->setUser();
         $setting = $this->buildUserSetting('mysystem', 'mytitle');
         $setting->availableValues = array('allowed' => 'text', 'allowed2' => 'text2');
-        $setting->uiControlType        = PluginSettings::CONTROL_MULTI_SELECT;
+        $setting->uiControl        = PluginSettings::UI_CONTROL_MULTI_SELECT;
 
         $this->settings->addSetting($setting);
 

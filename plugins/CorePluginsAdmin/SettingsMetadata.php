@@ -48,14 +48,6 @@ class SettingsMetadata
                 throw new Exception($setting->configure()->title . ': ' . $message);
             }
         }
-
-        try {
-            foreach ($settingsInstances as $pluginSetting) {
-                $pluginSetting->save();
-            }
-        } catch (Exception $e) {
-            throw new Exception(Piwik::translate('CoreAdminHome_PluginSettingsSaveFailed'));
-        }
     }
 
     private function findSettingValueFromRequest($settingValues, $pluginName, $settingName)
@@ -134,12 +126,12 @@ class SettingsMetadata
             'value' => $setting->getValue(),
             'defaultValue' => $setting->getDefaultValue(),
             'type' => $config->type,
-            'uiControlType' => $config->uiControlType,
+            'uiControl' => $config->uiControl,
+            'uiControlAttributes' => $config->uiControlAttributes,
             'availableValues' => $availableValues,
             'description' => Piwik::translate($config->description),
             'inlineHelp' => $inlineHelp,
             'introduction' => Piwik::translate($config->introduction),
-            'uiControlAttributes' => $config->uiControlAttributes,
             'showIf' => $config->showIf,
         );
     }

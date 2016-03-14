@@ -63,6 +63,22 @@ class API extends \Piwik\Plugin\API
     const OPTION_KEEP_URL_FRAGMENTS_GLOBAL = 'SitesManager_KeepURLFragmentsGlobal';
 
     /**
+     * @var SettingsProvider
+     */
+    private $settingsProvider;
+
+    /**
+     * @var SettingsMetadata
+     */
+    private $settingsMetadata;
+
+    public function __construct(SettingsProvider $provider, SettingsMetadata $settingsMetadata)
+    {
+        $this->settingsProvider = $provider;
+        $this->settingsMetadata = $settingsMetadata;
+    }
+
+    /**
      * Returns the javascript tag for the given idSite.
      * This tag must be included on every page to be tracked by Piwik
      *
@@ -506,7 +522,7 @@ class API extends \Piwik\Plugin\API
      * @param null|string $excludedUserAgents
      * @param int $keepURLFragments If 1, URL fragments will be kept when tracking. If 2, they
      *                              will be removed. If 0, the default global behavior will be used.
-     * @param array|null $settings JSON serialized settings eg {settingName: settingValue, ...}
+     * @param array|null $settingValues JSON serialized settings eg {settingName: settingValue, ...}
      * @see getKeepURLFragmentsGlobal.
      * @param string $type The website type, defaults to "website" if not set.
      * @param bool|null $excludeUnknownUrls Track only URL matching one of website URLs
@@ -528,7 +544,7 @@ class API extends \Piwik\Plugin\API
                             $excludedUserAgents = null,
                             $keepURLFragments = null,
                             $type = null,
-                            $settings = null,
+                            $settingValues = null,
                             $excludeUnknownUrls = null)
     {
         Piwik::checkUserHasSuperUserAccess();
@@ -559,18 +575,21 @@ class API extends \Piwik\Plugin\API
 
         $bind = array('name'     => $siteName,
                       'main_url' => $url);
-
-        $bind['exclude_unknown_urls'] = (int)$excludeUnknownUrls;
-        $bind['excluded_ips'] = $this->checkAndReturnExcludedIps($excludedIps);
-        $bind['excluded_parameters']  = $this->checkAndReturnCommaSeparatedStringList($excludedQueryParameters);
-        $bind['excluded_user_agents'] = $this->checkAndReturnCommaSeparatedStringList($excludedUserAgents);
-        $bind['keep_url_fragment']    = $keepURLFragments;
         $bind['timezone']   = $timezone;
         $bind['currency']   = $currency;
-        $bind['ecommerce']  = (int)$ecommerce;
-        $bind['sitesearch'] = $siteSearch;
-        $bind['sitesearch_keyword_parameters']  = $searchKeywordParameters;
-        $bind['sitesearch_category_parameters'] = $searchCategoryParameters;
+
+        /*
+            $bind['exclude_unknown_urls'] = (int)$excludeUnknownUrls;
+            $bind['excluded_ips'] = $this->checkAndReturnExcludedIps($excludedIps);
+            $bind['excluded_parameters']  = $this->checkAndReturnCommaSeparatedStringList($excludedQueryParameters);
+            $bind['excluded_user_agents'] = $this->checkAndReturnCommaSeparatedStringList($excludedUserAgents);
+            $bind['keep_url_fragment']    = $keepURLFragments;
+
+            $bind['ecommerce']  = (int)$ecommerce;
+            $bind['sitesearch'] = $siteSearch;
+            $bind['sitesearch_keyword_parameters']  = $searchKeywordParameters;
+            $bind['sitesearch_category_parameters'] = $searchCategoryParameters;
+        */
 
         if (is_null($startDate)) {
             $bind['ts_created'] = Date::now()->getDatetime();
@@ -586,20 +605,18 @@ class API extends \Piwik\Plugin\API
             $bind['group'] = "";
         }
 
-        if (!empty($settings)) {
-            $this->validateMeasurableSettings(0, $bind['type'], $settings);
+        if (!empty($settingValues)) {
+            $this->setAndValidateMeasurableSettings(0, $bind['type'], $settingValues);
         }
 
         $idSite = $this->getModel()->createSite($bind);
 
-        $this->insertSiteUrls($idSite, $urls);
+        $this->saveMeasurableSettings($idSite, $bind['type'], $settingValues);
+
+        // $this->insertSiteUrls($idSite, $urls);
 
         // we reload the access list which doesn't yet take in consideration this new website
         Access::getInstance()->reloadAccess();
-
-        if (!empty($settings)) {
-            $this->updateMeasurableSettings($idSite, $settings);
-        }
 
         $this->postUpdateWebsite($idSite);
 
@@ -629,38 +646,32 @@ class API extends \Piwik\Plugin\API
                 $writableSettings[$pluginName][] = $writableSetting;
             }
         }
+
         $settingsMetadata = new SettingsMetadata();
         return $settingsMetadata->formatSettings($writableSettings);
     }
 
-    private function validateMeasurableSettings($idSite, $idType, $settings)
+    private function setAndValidateMeasurableSettings($idSite, $idType, $settings)
     {
-        $measurableSettings = new MeasurableSettings($idSite, $idType);
+        $measurableSettings = $this->settingsProvider->getAllMeasurableSettings($idSite, $idType);
 
-        foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->configure()->getName();
-            if (!empty($settings[$name])) {
-                $measurableSetting->setValue($settings[$name]);
-            }
-        }
+        $this->settingsMetadata->setPluginSettings($measurableSettings, $settings, function ($setting) {
+            return true;
+        });
+
+        return $measurableSettings;
     }
 
-    private function updateMeasurableSettings($idSite, $settings)
+    /**
+     * @param MeasurableSettings[] $measurableSettings
+     */
+    private function saveMeasurableSettings($idSite, $idType, $settings)
     {
-        $idType = Site::getTypeFor($idSite);
+        $measurableSettings = $this->setAndValidateMeasurableSettings($idSite, $idType, $settings);
 
-        $measurableSettings = new MeasurableSettings($idSite, $idType);
-
-        foreach ($measurableSettings->getSettingsWritableByCurrentUser() as $measurableSetting) {
-            $name = $measurableSetting->configure()->getName();
-            if (!empty($settings[$name])) {
-                $measurableSetting->setValue($settings[$name]);
-            }
-            // we do not clear existing settings if the value is missing.
-            // There can be so many settings added by random plugins one would always clear some settings.
+        foreach ($measurableSettings as $measurableSetting) {
+            $measurableSetting->save();
         }
-
-        $measurableSettings->save();
     }
 
     private function postUpdateWebsite($idSite)
@@ -1113,7 +1124,7 @@ class API extends \Piwik\Plugin\API
      * @param int|null $keepURLFragments If 1, URL fragments will be kept when tracking. If 2, they
      *                                   will be removed. If 0, the default global behavior will be used.
      * @param string $type The Website type, default value is "website"
-     * @param array|null $settings JSON serialized settings eg {settingName: settingValue, ...}
+     * @param array|null $settingValues JSON serialized settings eg {settingName: settingValue, ...}
      * @param bool|null $excludeUnknownUrls Track only URL matching one of website URLs
      * @throws Exception
      * @see getKeepURLFragmentsGlobal. If null, the existing value will
@@ -1137,7 +1148,7 @@ class API extends \Piwik\Plugin\API
                                $excludedUserAgents = null,
                                $keepURLFragments = null,
                                $type = null,
-                               $settings = null,
+                               $settingValues = null,
                                $excludeUnknownUrls = null)
     {
         Piwik::checkUserHasAdminAccess($idSite);
@@ -1206,14 +1217,14 @@ class API extends \Piwik\Plugin\API
             $bind['type'] = $this->checkAndReturnType($type);
         }
 
-        if (!empty($settings)) {
-            $this->validateMeasurableSettings($idSite, Site::getTypeFor($idSite), $settings);
+        if (!empty($settingValues)) {
+            $this->setAndValidateMeasurableSettings($idSite, $idType = null, $settingValues);
         }
 
         $this->getModel()->updateSite($bind, $idSite);
 
-        if (!empty($settings)) {
-            $this->updateMeasurableSettings($idSite, $settings);
+        if (!empty($settingValues)) {
+            $this->saveMeasurableSettings($idSite, $idType = null, $settingValues);
         }
 
         // we now update the main + alias URLs

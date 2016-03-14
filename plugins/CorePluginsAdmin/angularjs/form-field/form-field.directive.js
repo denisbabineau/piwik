@@ -43,14 +43,14 @@
                     field.showField = scope.$eval(field.showIf, values);
                 }
 
-                function hasUiControlType(field, uiControlType)
+                function hasUiControl(field, uiControlType)
                 {
-                    return field.uiControlType === uiControlType;
+                    return field.uiControl === uiControlType;
                 }
 
                 function isSelectControl(field)
                 {
-                    return hasUiControlType(field, 'select') || hasUiControlType(field, 'multiselect');
+                    return hasUiControl(field, 'select') || hasUiControl(field, 'multiselect');
                 }
 
                 function hasGroupedValues(availableValues)
@@ -79,14 +79,6 @@
                     
                     if (angular.isArray(field.defaultValue)) {
                         field.defaultValue = field.defaultValue.join(',');
-                    }
-
-                    if (angular.isArray(field.value)) {
-                        if (hasUiControlType(field, 'textarea')) {
-                            field.value = field.value.join("\n");
-                        } else if (hasUiControlType(field, 'text')) {
-                            field.value = field.value.join(", ");
-                        }
                     }
 
                     if (isSelectControl(field) && field.availableValues) {

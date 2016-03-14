@@ -54,8 +54,6 @@ class Storage
         if ($this->isDirty) {
             // only save when it is actually dirty. This way we prevent having
             // saving the same values multiple times when there was no change
-            $this->loadSettingsIfNotDoneYet();
-
             $this->backend->save($this->settingsValues);
             $this->isDirty = false;
 

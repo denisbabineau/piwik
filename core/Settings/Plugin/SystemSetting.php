@@ -10,6 +10,7 @@
 namespace Piwik\Settings\Plugin;
 
 use Piwik\Config;
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Settings\Setting;
 use Piwik\Settings\Storage;
@@ -36,7 +37,7 @@ class SystemSetting extends Setting
     {
         parent::__construct($name, $defaultValue, $pluginName);
 
-        $factory = new Storage\Factory();
+        $factory = StaticContainer::get('Piwik\Settings\Storage\Factory');
         $this->storage = $factory->getPluginStorage($this->pluginName);
 
         $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());

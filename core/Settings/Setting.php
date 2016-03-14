@@ -79,8 +79,8 @@ abstract class Setting
 
         $this->name = $name;
         $this->key = $name;
-        $this->defaultValue = $defaultValue;
         $this->pluginName = $pluginName;
+        $this->setDefaultValue($defaultValue);
     }
 
     public function getName()
@@ -96,6 +96,11 @@ abstract class Setting
     public function getDefaultValue()
     {
         return $this->defaultValue;
+    }
+
+    public function setDefaultValue($defaultValue)
+    {
+        $this->defaultValue = $defaultValue;
     }
 
     public function configure()
@@ -137,18 +142,6 @@ abstract class Setting
         if (isset($this->storage)) {
             $this->storage->save();
         }
-    }
-
-    /**
-     * Sets the object used to persist settings. Meant for tests only.
-     *
-     * @internal
-     * @ignore
-     * @param Storage $storage
-     */
-    public function setStorage(Storage $storage)
-    {
-        $this->storage = $storage;
     }
 
     /**
@@ -245,11 +238,15 @@ abstract class Setting
     private function setDefaultTypeAndFieldIfNeeded(SettingConfig $config)
     {
         if (!isset($config->type)) {
-            $config->type = $config->getDefaultType($config->uiControlType);
+            $config->type = $config->getDefaultType($config->uiControl);
         }
 
-        if (!isset($config->uiControlType)) {
-            $config->uiControlType = $config->getDefaultUiControl($config->type);
+        if (!isset($config->uiControl)) {
+            $config->uiControl = $config->getDefaultUiControl($config->type);
+        }
+
+        if ($config->uiControl === SettingConfig::UI_CONTROL_MULTI_SELECT) {
+            $config->type = SettingConfig::TYPE_ARRAY;
         }
     }
 

@@ -45,6 +45,14 @@ class API extends \Piwik\Plugin\API
         $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues, function ($setting) {
             return $setting instanceof SystemSetting;
         });
+
+        try {
+            foreach ($pluginsSettings as $pluginSetting) {
+                $pluginSetting->save();
+            }
+        } catch (Exception $e) {
+            throw new Exception(Piwik::translate('CoreAdminHome_PluginSettingsSaveFailed'));
+        }
     }
 
     public function setUserSettings($settingValues)
@@ -56,6 +64,14 @@ class API extends \Piwik\Plugin\API
         $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues, function ($setting) {
             return $setting instanceof UserSetting;
         });
+
+        try {
+            foreach ($pluginsSettings as $pluginSetting) {
+                $pluginSetting->save();
+            }
+        } catch (Exception $e) {
+            throw new Exception(Piwik::translate('CoreAdminHome_PluginSettingsSaveFailed'));
+        }
     }
     public function getSystemSettings()
     {

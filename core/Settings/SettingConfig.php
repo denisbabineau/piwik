@@ -22,14 +22,14 @@ class SettingConfig
     const TYPE_BOOL   = 'boolean';
     const TYPE_ARRAY  = 'array';
 
-    const CONTROL_RADIO    = 'radio';
-    const CONTROL_TEXT     = 'text';
-    const CONTROL_TEXTAREA = 'textarea';
-    const CONTROL_CHECKBOX = 'checkbox';
-    const CONTROL_PASSWORD = 'password';
-    const CONTROL_MULTI_SELECT  = 'multiselect';
-    const CONTROL_SINGLE_SELECT = 'select';
-    const CONTROL_HIDDEN = 'hidden';
+    const UI_CONTROL_RADIO    = 'radio';
+    const UI_CONTROL_TEXT     = 'text';
+    const UI_CONTROL_TEXTAREA = 'textarea';
+    const UI_CONTROL_CHECKBOX = 'checkbox';
+    const UI_CONTROL_PASSWORD = 'password';
+    const UI_CONTROL_MULTI_SELECT  = 'multiselect';
+    const UI_CONTROL_SINGLE_SELECT = 'select';
+    const UI_CONTROL_HIDDEN = 'hidden';
 
     /**
      * Describes the setting's PHP data type. When saved, setting values will always be casted to this
@@ -48,7 +48,7 @@ class SettingConfig
      *
      * @var string
      */
-    public $uiControlType = null;
+    public $uiControl = null;
 
     /**
      * Name-value mapping of HTML attributes that will be added HTML form control, eg,
@@ -164,13 +164,13 @@ class SettingConfig
     public function getDefaultType($controlType)
     {
         $defaultTypes = array(
-            static::CONTROL_TEXT          => static::TYPE_STRING,
-            static::CONTROL_TEXTAREA      => static::TYPE_STRING,
-            static::CONTROL_PASSWORD      => static::TYPE_STRING,
-            static::CONTROL_CHECKBOX      => static::TYPE_BOOL,
-            static::CONTROL_MULTI_SELECT  => static::TYPE_ARRAY,
-            static::CONTROL_RADIO         => static::TYPE_STRING,
-            static::CONTROL_SINGLE_SELECT => static::TYPE_STRING,
+            static::UI_CONTROL_TEXT          => static::TYPE_STRING,
+            static::UI_CONTROL_TEXTAREA      => static::TYPE_STRING,
+            static::UI_CONTROL_PASSWORD      => static::TYPE_STRING,
+            static::UI_CONTROL_CHECKBOX      => static::TYPE_BOOL,
+            static::UI_CONTROL_MULTI_SELECT  => static::TYPE_ARRAY,
+            static::UI_CONTROL_RADIO         => static::TYPE_STRING,
+            static::UI_CONTROL_SINGLE_SELECT => static::TYPE_STRING,
         );
 
         if (isset($defaultTypes[$controlType])) {
@@ -183,18 +183,18 @@ class SettingConfig
     public function getDefaultUiControl($type)
     {
         $defaultControlTypes = array(
-            static::TYPE_INT    => static::CONTROL_TEXT,
-            static::TYPE_FLOAT  => static::CONTROL_TEXT,
-            static::TYPE_STRING => static::CONTROL_TEXT,
-            static::TYPE_BOOL   => static::CONTROL_CHECKBOX,
-            static::TYPE_ARRAY  => static::CONTROL_MULTI_SELECT,
+            static::TYPE_INT    => static::UI_CONTROL_TEXT,
+            static::TYPE_FLOAT  => static::UI_CONTROL_TEXT,
+            static::TYPE_STRING => static::UI_CONTROL_TEXT,
+            static::TYPE_BOOL   => static::UI_CONTROL_CHECKBOX,
+            static::TYPE_ARRAY  => static::UI_CONTROL_MULTI_SELECT,
         );
 
         if (isset($defaultControlTypes[$type])) {
             return $defaultControlTypes[$type];
         }
 
-        return static::CONTROL_TEXT;
+        return static::UI_CONTROL_TEXT;
     }
 
 }

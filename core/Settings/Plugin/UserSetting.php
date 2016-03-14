@@ -10,6 +10,7 @@
 namespace Piwik\Settings\Plugin;
 
 use Piwik\Common;
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Plugin\SettingsProvider;
 use Piwik\Settings\Setting;
@@ -41,7 +42,7 @@ class UserSetting extends Setting
     {
         parent::__construct($name, $defaultValue, $pluginName);
 
-        $factory = new Storage\Factory();
+        $factory = StaticContainer::get('Piwik\Settings\Storage\Factory');
         $this->storage = $factory->getPluginStorage($this->pluginName);
 
         $this->setUserLogin($userLogin);

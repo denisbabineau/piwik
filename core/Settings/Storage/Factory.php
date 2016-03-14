@@ -9,8 +9,6 @@
 
 namespace Piwik\Settings\Storage;
 
-use Piwik\Settings\Storage\Backend\BackendInterface;
-use Piwik\Settings\Storage\Backend\OptionTable;
 use Piwik\SettingsServer;
 
 class Factory

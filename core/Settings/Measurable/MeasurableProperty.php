@@ -9,8 +9,10 @@
 
 namespace Piwik\Settings\Measurable;
 
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Settings\Storage;
+use Exception;
 
 /**
  * Describes a Type setting for a website, mobile app, ...
@@ -19,6 +21,12 @@ use Piwik\Settings\Storage;
  */
 class MeasurableProperty extends \Piwik\Settings\Setting
 {
+    private $allowedNames = array(
+        'ecommerce', 'sitesearch', 'sitesearch_keyword_parameters',
+        'sitesearch_category_parameters', 'currency',
+        'exclude_unknown_urls', 'excluded_ips', 'excluded_parameters',
+        'excluded_user_agents', 'keep_url_fragment', 'urls'
+    );
 
     /**
      * Constructor.
@@ -27,9 +35,14 @@ class MeasurableProperty extends \Piwik\Settings\Setting
      * @param mixed $defaultValue  Default value for this setting if no value was specified.
      * @param string $pluginName The name of the plugin the setting belongs to.
      * @param int $idSite The idSite this setting belongs to.
+     * @throws Exception
      */
     public function __construct($name, $defaultValue, $pluginName, $idSite)
     {
+        if (!in_array($name, $this->allowedNames)) {
+            throw new Exception(sprintf('Name "%s" is not allowed to be used with a MeasurableProperty, use a MeasurableSetting instead.', $name));
+        }
+
         parent::__construct($name, $defaultValue, $pluginName);
 
         $this->idSite = $idSite;
@@ -41,7 +54,7 @@ class MeasurableProperty extends \Piwik\Settings\Setting
             $this->isWritableByCurrentUser = Piwik::hasUserSuperUserAccess();
         }
 
-        $storageFactory = new Storage\Factory();
+        $storageFactory = StaticContainer::get('Piwik\Settings\Storage\Factory');
 
         if (!empty($idSite)) {
             $this->storage = $storageFactory->getMeasurableStorage($idSite);

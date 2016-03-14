@@ -71,7 +71,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
         return $this->makeUserSetting('autoRefresh', $default = false, function (SettingConfig $config) {
             $config->title = 'Auto refresh';
             $config->type = SettingConfig::TYPE_BOOL;
-            $config->uiControlType = SettingConfig::CONTROL_CHECKBOX;
+            $config->uiControl = SettingConfig::UI_CONTROL_CHECKBOX;
             $config->description = 'If enabled, the value will be automatically refreshed depending on the specified interval';
         });
     }
@@ -81,7 +81,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
         return $this->makeUserSetting('refreshInterval', $default = '30', function (SettingConfig $config) {
                 $config->title = 'Refresh Interval';
                 $config->type  = SettingConfig::TYPE_INT;
-                $config->uiControlType = SettingConfig::CONTROL_TEXT;
+                $config->uiControl = SettingConfig::UI_CONTROL_TEXT;
                 $config->uiControlAttributes = array('size' => 3);
                 $config->description = 'Defines how often the value should be updated';
                 $config->inlineHelp  = 'Enter a number which is >= 15';
@@ -97,7 +97,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
     {
         return $this->makeUserSetting('color', $default = 'red', function (SettingConfig $config) {
             $config->title = 'Color';
-            $config->uiControlType = SettingConfig::CONTROL_RADIO;
+            $config->uiControl = SettingConfig::UI_CONTROL_RADIO;
             $config->description = 'Pick your favourite color';
             $config->availableValues = array('red' => 'Red', 'blue' => 'Blue', 'green' => 'Green');
         });
@@ -108,7 +108,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
         return $this->makeSystemSetting('metric', $default = 'nb_visits', function (SettingConfig $config) {
             $config->title = 'Metric to display';
             $config->type = SettingConfig::TYPE_STRING;
-            $config->uiControlType = SettingConfig::CONTROL_SINGLE_SELECT;
+            $config->uiControl = SettingConfig::UI_CONTROL_SINGLE_SELECT;
             $config->availableValues = array('nb_visits' => 'Visits', 'nb_actions' => 'Actions', 'visitors' => 'Visitors');
             $config->introduction = 'Only Super Users can change the following settings:';
             $config->description = 'Choose the metric that should be displayed in the browser tab';
@@ -122,7 +122,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
         return $this->makeSystemSetting('browsers', $default, function (SettingConfig $config) {
             $config->title = 'Supported Browsers';
             $config->type = SettingConfig::TYPE_ARRAY;
-            $config->uiControlType = SettingConfig::CONTROL_MULTI_SELECT;
+            $config->uiControl = SettingConfig::UI_CONTROL_MULTI_SELECT;
             $config->availableValues = array('firefox' => 'Firefox', 'chromium' => 'Chromium', 'safari' => 'safari');
             $config->description = 'The value will be only displayed in the following browsers';
         });
@@ -134,7 +134,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 
         return $this->makeSystemSetting('description', $default, function (SettingConfig $config) {
             $config->title = 'Description for value';
-            $config->uiControlType = SettingConfig::CONTROL_TEXTAREA;
+            $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->description = 'This description will be displayed next to the value';
         });
     }
@@ -143,7 +143,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
     {
         return $this->makeSystemSetting('password', $default = null, function (SettingConfig $config) {
             $config->title = 'API password';
-            $config->uiControlType = SettingConfig::CONTROL_PASSWORD;
+            $config->uiControl = SettingConfig::UI_CONTROL_PASSWORD;
             $config->description = 'Password for the 3rd API where we fetch the value';
             $config->transform = function ($value) {
                 return sha1($value . 'salt');

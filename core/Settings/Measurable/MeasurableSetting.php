@@ -10,6 +10,7 @@
 namespace Piwik\Settings\Measurable;
 
 use Piwik\Common;
+use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Settings\Storage;
 
@@ -36,7 +37,7 @@ class MeasurableSetting extends \Piwik\Settings\Setting
 
         $this->idSite = $idSite;
 
-        $storageFactory = new Storage\Factory();
+        $storageFactory = StaticContainer::get('Piwik\Settings\Storage\Factory');
 
         if (!empty($idSite)) {
             $this->isWritableByCurrentUser = Piwik::isUserHasAdminAccess($idSite);

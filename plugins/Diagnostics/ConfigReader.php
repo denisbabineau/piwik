@@ -136,7 +136,7 @@ class ConfigReader
      * for already existing configured config values that overwrite a plugin system setting.
      *
      * @param array $configValues
-     * @param \Piwik\Plugin\Settings[] $pluginSettings
+     * @param \Piwik\Settings\Settings[] $pluginSettings
      * @return array
      */
     public function addConfigValuesFromPluginSettings($configValues, $pluginSettings)
@@ -151,24 +151,24 @@ class ConfigReader
             $configs[$pluginName] = array();
 
             foreach ($pluginSetting->getSettings() as $setting) {
-                if ($setting instanceof PiwikSettings\Setting\SystemSetting && $setting->isWritableByCurrentUser()) {
+                if ($setting instanceof PiwikSettings\Plugin\SystemSetting && $setting->isWritableByCurrentUser()) {
                     $name = $setting->getName();
+                    $config = $setting->configure();
 
                     $description = '';
-                    if (!empty($setting->description)) {
-                        $description .= $setting->description . ' ';
+                    if (!empty($config->description)) {
+                        $description .= $config->description . ' ';
                     }
 
-                    if (!empty($setting->inlineHelp)) {
-                        $description .= $setting->inlineHelp;
+                    if (!empty($config->inlineHelp)) {
+                        $description .= $config->inlineHelp;
                     }
 
                     if (isset($configValues[$pluginName][$name])) {
-                        $configValues[$pluginName][$name]['defaultValue'] = $setting->defaultValue;
+                        $configValues[$pluginName][$name]['defaultValue'] = $setting->getDefaultValue();
                         $configValues[$pluginName][$name]['description']  = trim($description);
 
-                        if ($setting->uiControlType === PluginSettings::CONTROL_PASSWORD) {
-                            $value = $configValues[$pluginName][$name]['value'];
+                        if ($config->uiControl === PiwikSettings\SettingConfig::UI_CONTROL_PASSWORD) {
                             $configValues[$pluginName][$name]['value'] = $this->getMaskedPassword();
                         }
                     } else {

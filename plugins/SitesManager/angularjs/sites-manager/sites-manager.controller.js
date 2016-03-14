@@ -20,7 +20,6 @@
             $scope.adminSites = adminSites;
             $scope.hasSuperUserAccess = piwik.hasSuperUserAccess;
             $scope.redirectParams = {showaddsite: false};
-            $scope.siteIsBeingEdited = false;
             $scope.cacheBuster = piwik.cacheBuster;
             $scope.totalNumberOfSites = '?';
 
@@ -40,8 +39,6 @@
             $scope.addSite = addSite;
             $scope.addNewEntity = addNewEntity;
             $scope.saveGlobalSettings = saveGlobalSettings;
-
-            $scope.informSiteIsBeingEdited = informSiteIsBeingEdited;
             $scope.lookupCurrentEditSite = lookupCurrentEditSite;
 
             $scope.closeAddMeasurableDialog = function () {
@@ -60,11 +57,6 @@
 
                 return types;
             });
-        };
-
-        var informSiteIsBeingEdited = function() {
-
-            $scope.siteIsBeingEdited = true;
         };
 
         var initSelectLists = function() {
@@ -249,9 +241,17 @@
             ajaxHandler.send(true);
         };
 
-        var cancelEditSite = function ($event) {
-            $event.stopPropagation();
-            piwik.helper.redirect($scope.redirectParams);
+        var cancelEditSite = function (site) {
+            site.editMode = false;
+
+            var idSite = site.idsite;
+            if (idSite) {
+                var siteElement = $('.site[idsite=' + idSite + ']');
+                if (siteElement[0]) {
+                    // todo move this into a directive
+                    siteElement[0].scrollIntoView();
+                }
+            }
         };
 
         var lookupCurrentEditSite = function () {
