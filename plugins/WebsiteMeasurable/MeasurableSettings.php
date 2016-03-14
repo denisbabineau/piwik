@@ -151,7 +151,7 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
             );
         });
 
-        $property = $this->makeMeasurableProperty('use_default_site_search_params', $default = null, function (SettingConfig $config) {
+        $this->makeMeasurableProperty('use_default_site_search_params', $default = true, function (SettingConfig $config) use ($sitesManagerApi) {
 
             if (Piwik::hasUserSuperUserAccess()) {
                 $title = Piwik::translate('SitesManager_SearchUseDefault', array("<a href='#globalSettings'>","</a>"));
@@ -162,26 +162,30 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
             $config->title = $title;
             $config->type = SettingConfig::TYPE_BOOL;
             $config->uiControlType = SettingConfig::CONTROL_CHECKBOX;
-            $config->showIf = 'sitesearch';
+
+            $searchKeywordsGlobal = $sitesManagerApi->getSearchKeywordParametersGlobal();
+
+            $hasParams = (int) !empty($searchKeywordsGlobal);
+
+            $config->showIf = $hasParams . ' && sitesearch';
         });
-        $property->setIsWritableByCurrentUser(!empty($searchKeywordsGlobal));
 
         $this->makeMeasurableProperty('default_value_info', $default = null, function (SettingConfig $config) use ($sitesManagerApi) {
 
             $searchKeywordsGlobal = $sitesManagerApi->getSearchKeywordParametersGlobal();
             $searchCategoryGlobal = $sitesManagerApi->getSearchCategoryParametersGlobal();
 
-            $config->title  = Piwik::translate('SitesManager_SearchKeywordLabel');
-            $config->title .= Piwik::translate('General_Default') . ': ';
-            $config->title .= implode(',', $searchKeywordsGlobal) . ' & ';
-            $config->title .= Piwik::translate('SitesManager_SearchCategoryLabel') . ': ';
-            $config->title .= implode(',', $searchCategoryGlobal);
+            $config->description  = Piwik::translate('SitesManager_SearchKeywordLabel');
+            $config->description .= ' (' . Piwik::translate('General_Default') . ')';
+            $config->description .= ': ';
+            $config->description .= $searchKeywordsGlobal;
+            $config->description .= ' & ';
+            $config->description .= Piwik::translate('SitesManager_SearchCategoryLabel');
+            $config->description .= ': ';
+            $config->description .= $searchCategoryGlobal;
             $config->uiControlType = SettingConfig::CONTROL_HIDDEN;
 
-            $hasParams = 'false';
-            if (!empty($searchKeywordsGlobal)) {
-                $hasParams = 'true';
-            }
+            $hasParams = (int) !empty($searchKeywordsGlobal);
 
             $config->showIf = $hasParams . ' && sitesearch && use_default_site_search_params';
         });
@@ -189,7 +193,7 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
         $this->makeMeasurableProperty('sitesearch_keyword_parameters', $default = array(), function (SettingConfig $config) {
             $config->title = 'SitesManager_SearchKeywordLabel';
             $config->type = SettingConfig::TYPE_ARRAY;
-            $config->uiControlType = SettingConfig::CONTROL_TEXTAREA;
+            $config->uiControlType = SettingConfig::CONTROL_TEXT;
             $config->inlineHelp = 'SitesManager_SearchKeywordParametersDesc';
             $config->showIf = 'sitesearch && !use_default_site_search_params';
         });
@@ -197,9 +201,9 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
         $property = $this->makeMeasurableProperty('sitesearch_category_parameters', $default = array(), function (SettingConfig $config) {
             $config->title = 'SitesManager_SearchCategoryLabel';
             $config->type = SettingConfig::TYPE_ARRAY;
-            $config->uiControlType = SettingConfig::CONTROL_TEXTAREA;
+            $config->uiControlType = SettingConfig::CONTROL_TEXT;
             $config->inlineHelp = array('Goals_Optional', 'SitesManager_SearchCategoryParametersDesc');
-            $config->showIf = 'sitesearch';
+            $config->showIf = 'sitesearch && !use_default_site_search_params';
         });
         $property->setIsWritableByCurrentUser($this->pluginManager->isPluginActivated('CustomVariables'));
         /**

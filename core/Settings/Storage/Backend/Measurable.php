@@ -27,6 +27,14 @@ class Measurable implements BackendInterface
      */
     private $idSite;
 
+    private $commaSeparatedArrayFields = array(
+        'sitesearch_keyword_parameters',
+        'sitesearch_category_parameters',
+        'excluded_user_agents',
+        'excluded_parameters',
+        'excluded_ips'
+    );
+
     public function __construct($idSite)
     {
         $this->idSite = $idSite;
@@ -42,15 +50,25 @@ class Measurable implements BackendInterface
      */
     public function save($values)
     {
+        $model = $this->getModel();
+
         foreach ($values as $key => $value) {
-            if (is_array($value)) {
+            if (is_array($value) && in_array($key, $this->commaSeparatedArrayFields)) {
                 $values[$key] = implode(',', $value);
             }
         }
 
-        // TODO handle urls?
+        if (!empty($values['urls'])) {
+            $urls = $values['urls'];
+            $values['main_url'] = array_shift($urls);
+            unset($values['urls']);
 
-        $model = new Model();
+            $model->deleteSiteAliasUrls($this->idSite);
+            foreach ($urls as $url) {
+                $model->insertSiteUrl($this->idSite, $url);
+            }
+        }
+
         $model->updateSite($values, $this->idSite);
     }
 
@@ -59,11 +77,22 @@ class Measurable implements BackendInterface
         if (!empty($this->idSite)) {
             $site = Site::getSite($this->idSite);
 
-            $urls = new Model();
+            $urls = $this->getModel();
             $site['urls'] = $urls->getSiteUrlsFromId($this->idSite);
+
+            foreach ($this->commaSeparatedArrayFields as $field) {
+                if (!empty($site[$field]) && is_string($site[$field])) {
+                    $site[$field] = explode(',', $site[$field]);
+                }
+            }
 
             return $site;
         }
+    }
+
+    private function getModel()
+    {
+        return new Model();
     }
 
     public function delete()

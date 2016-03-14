@@ -95,7 +95,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 
     private function createColorSetting()
     {
-        return $this->makeUserSetting('color', $default = null, function (SettingConfig $config) {
+        return $this->makeUserSetting('color', $default = 'red', function (SettingConfig $config) {
             $config->title = 'Color';
             $config->uiControlType = SettingConfig::CONTROL_RADIO;
             $config->description = 'Pick your favourite color';

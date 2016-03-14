@@ -64,16 +64,19 @@ class SettingsMetadata
             return;
         }
 
-        $settings = $settingValues[$pluginName];
+        foreach ($settingValues[$pluginName] as $setting) {
+            if ($setting['name'] === $settingName) {
+                $value = null;
+                if (array_key_exists('value', $setting)) {
+                    $value = $setting['value'];
+                }
 
-        if (array_key_exists($settingName, $settings)) {
-            $value = $settings[$settingName];
+                if (is_string($value)) {
+                    return Common::unsanitizeInputValue($value);
+                }
 
-            if (is_string($value)) {
-                return Common::unsanitizeInputValue($value);
+                return $value;
             }
-
-            return $value;
         }
     }
 

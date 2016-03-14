@@ -14,14 +14,19 @@
 
         var self = this;
 
+        this.isLoading = true;
+
         var apiMethod = 'CorePluginsAdmin.getUserSettings';
-        debugger;
+
         if ($scope.mode === 'admin') {
             apiMethod = 'CorePluginsAdmin.getSystemSettings';
         }
 
         piwikApi.fetch({method: apiMethod}).then(function (settings) {
+            self.isLoading = false;
             self.settingsPerPlugin = settings;
+        }, function () {
+            self.isLoading = false;
         });
 
         this.save = function () {
@@ -30,8 +35,35 @@
                 apiMethod = 'CorePluginsAdmin.setSystemSettings';
             }
 
-            piwikApi.fetch({method: apiMethod}).then(function (settings) {
-                this.settings = settings;
+            this.isLoading = true;
+
+            var values = {};
+            angular.forEach(this.settingsPerPlugin, function (settings) {
+                if (!values[settings.pluginName]) {
+                    values[settings.pluginName] = [];
+                }
+
+                angular.forEach(settings.settings, function (setting) {
+                    var value = setting.value;
+                    if (value === false) {
+                        value = '0';
+                    }
+                    values[settings.pluginName].push({
+                        name: setting.name,
+                        value: value
+                    });
+                });
+            });
+
+            piwikApi.post({method: apiMethod}, {settingValues: values}).then(function (success) {
+                self.isLoading = false;
+
+                var UI = require('piwik/UI');
+                var notification = new UI.Notification();
+                notification.show(_pk_translate('CoreAdminHome_PluginSettingsSaveSuccess'), {context: 'success'});
+
+            }, function () {
+                self.isLoading = false;
             });
         };
     }

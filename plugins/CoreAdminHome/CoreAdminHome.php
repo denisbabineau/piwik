@@ -59,7 +59,6 @@ class CoreAdminHome extends \Piwik\Plugin
         $jsFiles[] = "plugins/CoreHome/javascripts/broadcast.js";
         $jsFiles[] = "plugins/CoreAdminHome/javascripts/generalSettings.js";
         $jsFiles[] = "plugins/CoreHome/javascripts/donate.js";
-        $jsFiles[] = "plugins/CoreAdminHome/javascripts/pluginSettings.js";
         $jsFiles[] = "plugins/CoreAdminHome/javascripts/protocolCheck.js";
     }
 
