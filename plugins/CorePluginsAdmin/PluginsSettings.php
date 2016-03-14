@@ -96,18 +96,6 @@ class PluginsSettings
         return $userSettings;
     }
 
-    /**
-     * Detects whether there are user settings for activated plugins available that the current user can change.
-     *
-     * @return bool
-     */
-    public function hasUserPluginsSettingsForCurrentUser()
-    {
-        $settings = $this->getAllWritableUserSettings();
-
-        return !empty($settings);
-    }
-
     public function getPluginNamesHavingSystemSettings()
     {
         return array_keys($this->getAllWritableSystemSettings());

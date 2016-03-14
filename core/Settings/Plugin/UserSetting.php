@@ -33,12 +33,13 @@ class UserSetting extends Setting
      * Constructor.
      *
      * @param string $name The setting's persisted name.
-     * @param string $title The setting's display name.
-     * @param null|string $userLogin The user this setting applies to. Will default to the current user login.
+     * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $pluginName The name of the plugin the setting belongs to
+     * @param string $userLogin The name of the user the value should be set or get for
      */
-    public function __construct($config, $pluginName, $userLogin)
+    public function __construct($name, $defaultValue, $pluginName, $userLogin)
     {
-        parent::__construct($config, $pluginName);
+        parent::__construct($name, $defaultValue, $pluginName);
 
         $factory = new Storage\Factory();
         $this->storage = $factory->getPluginStorage($this->pluginName);
@@ -87,7 +88,7 @@ class UserSetting extends Setting
         }
 
         $this->userLogin = $userLogin;
-        $this->key       = $this->buildUserSettingName($this->config->getName(), $userLogin);
+        $this->key       = $this->buildUserSettingName($this->name, $userLogin);
     }
 
     private function buildUserSettingName($name, $userLogin)
@@ -119,7 +120,7 @@ class UserSetting extends Setting
         }
 
         $settings = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
-        $pluginsSettings = $settings->getAllPluginsSettings();
+        $pluginsSettings = $settings->getAllPluginSettings();
 
         foreach ($pluginsSettings as $pluginSettings) {
             $settings = $pluginSettings->getSettings();

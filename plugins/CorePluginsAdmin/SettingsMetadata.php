@@ -103,39 +103,41 @@ class SettingsMetadata
     {
         $config = $setting->configure();
 
-        if (isset($config->inlineHelp) && !is_array($config->inlineHelp)) {
-            $config->inlineHelp = array($config->inlineHelp);
+        $inlineHelp = $config->inlineHelp;
+        if (isset($inlineHelp) && !is_array($inlineHelp)) {
+            $inlineHelp = array($inlineHelp);
         }
 
-        if (is_array($config->inlineHelp)) {
-            foreach ($config->inlineHelp as $key => $help) {
-                $config->inlineHelp[$key] = Piwik::translate('' . $help);
+        if (is_array($inlineHelp)) {
+            foreach ($inlineHelp as $key => $help) {
+                $inlineHelp[$key] = Piwik::translate($help);
             }
         }
 
-        if (is_array($config->availableValues)) {
-            foreach ($config->availableValues as $key => $value) {
+        $availableValues = $config->availableValues;
+        if (is_array($availableValues)) {
+            foreach ($availableValues as $key => $value) {
                 if (!is_array($value)) {
-                    $config->availableValues[$key] = Piwik::translate('' . $value);
+                    $availableValues[$key] = Piwik::translate($value);
                 }
             }
 
-            $config->availableValues = (object) $config->availableValues;
+            $availableValues = (object) $availableValues;
         }
 
         return array(
-            'name' => $config->getName(),
+            'name' => $setting->getName(),
             'title' => Piwik::translate($config->title),
+            'value' => $setting->getValue(),
+            'defaultValue' => $setting->getDefaultValue(),
             'type' => $config->type,
             'uiControlType' => $config->uiControlType,
-            'availableValues' => $config->availableValues,
-            'defaultValue' => $config->defaultValue,
+            'availableValues' => $availableValues,
             'description' => Piwik::translate($config->description),
-            'inlineHelp' => $config->inlineHelp,
+            'inlineHelp' => $inlineHelp,
             'introduction' => Piwik::translate($config->introduction),
             'uiControlAttributes' => $config->uiControlAttributes,
             'showIf' => $config->showIf,
-            'value' => $setting->getValue()
         );
     }
 

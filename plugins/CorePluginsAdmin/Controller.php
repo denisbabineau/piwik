@@ -56,14 +56,7 @@ class Controller extends Plugin\ControllerAdmin
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        return $this->renderTemplate('pluginSettings', array('mode' => 'admin'));
-    }
-
-    public function userPluginSettings()
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        return $this->renderTemplate('pluginSettings', array('mode' => 'user'));
+        return $this->renderTemplate('pluginSettings');
     }
 
     public function marketplace()

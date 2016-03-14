@@ -29,11 +29,12 @@ class SystemSetting extends Setting
      * Constructor.
      *
      * @param string $name The setting's persisted name.
-     * @param string $title The setting's display name.
+     * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $pluginName The name of the plugin the system setting belongs to.
      */
-    public function __construct($config, $pluginName)
+    public function __construct($name, $defaultValue, $pluginName)
     {
-        parent::__construct($config, $pluginName);
+        parent::__construct($name, $defaultValue, $pluginName);
 
         $factory = new Storage\Factory();
         $this->storage = $factory->getPluginStorage($this->pluginName);

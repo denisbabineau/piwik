@@ -9,7 +9,6 @@
 
 namespace Piwik\Settings\Measurable;
 
-use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Settings\Storage;
 
@@ -25,12 +24,13 @@ class MeasurableProperty extends \Piwik\Settings\Setting
      * Constructor.
      *
      * @param string $name The persisted name of the setting.
-     * @param string $title The display name of the setting.
+     * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $pluginName The name of the plugin the setting belongs to.
      * @param int $idSite The idSite this setting belongs to.
      */
-    public function __construct($config, $pluginName, $idSite)
+    public function __construct($name, $defaultValue, $pluginName, $idSite)
     {
-        parent::__construct($config, $pluginName);
+        parent::__construct($name, $defaultValue, $pluginName);
 
         $this->idSite = $idSite;
 

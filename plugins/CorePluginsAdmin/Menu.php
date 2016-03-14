@@ -82,12 +82,5 @@ class Menu extends \Piwik\Plugin\Menu
                                    $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'user')),
                                    $order = 5);
         }
-
-
-        if ($this->pluginsSettings->hasUserPluginsSettingsForCurrentUser()) {
-            $menu->addPersonalItem('CoreAdminHome_PluginSettings',
-                $this->urlForAction('userPluginSettings'),
-                $order = 15);
-        }
     }
 }

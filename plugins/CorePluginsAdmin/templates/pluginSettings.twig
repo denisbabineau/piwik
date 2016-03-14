@@ -1,12 +1,7 @@
-
-{% extends mode == 'user' ? "user.twig" : "admin.twig" %}
+{% extends "admin.twig" %}
 
 {% set title %}
-{% if mode == 'user' -%}
-    {{ 'CoreAdminHome_PersonalPluginSettings'|translate }}
-{%- else -%}
-    {{ 'CoreAdminHome_SystemPluginSettings'|translate }}
-{% endif %}
+{{ 'CoreAdminHome_SystemPluginSettings'|translate }}
 {% endset %}
 
 {% block content %}

@@ -71,18 +71,20 @@ abstract class MeasurableSettings extends Settings
         return $typeId === $this->idMeasurableType;
     }
 
-    protected function makeMeasurableSetting(SettingConfig $config)
+    protected function makeMeasurableSetting($name, $defaultValue, $configureCallback)
     {
-        $setting = new MeasurableSetting($config, $this->pluginName, $this->idSite);
+        $setting = new MeasurableSetting($name, $defaultValue, $this->pluginName, $this->idSite);
+        $setting->setConfigureCallback($configureCallback);
 
         $this->addSetting($setting);
 
         return $setting;
     }
 
-    protected function makeMeasurableProperty(SettingConfig $config)
+    protected function makeMeasurableProperty($name, $defaultValue, $configureCallback)
     {
-        $setting = new MeasurableProperty($config, $this->pluginName, $this->idSite);
+        $setting = new MeasurableProperty($name, $defaultValue, $this->pluginName, $this->idSite);
+        $setting->setConfigureCallback($configureCallback);
 
         $this->addSetting($setting);
 

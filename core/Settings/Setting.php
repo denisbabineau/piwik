@@ -12,6 +12,7 @@ namespace Piwik\Settings;
 use Piwik\Piwik;
 use Piwik\SettingsServer;
 use Piwik\Settings\Storage\Storage;
+use Exception;
 
 /**
  * Base setting type class.
@@ -56,37 +57,57 @@ abstract class Setting
     protected $name;
 
     /**
+     * @var mixed
+     */
+    protected $defaultValue;
+
+    /**
      * Constructor.
      *
      * @param string $name    The setting's persisted name. Only alphanumeric characters are allowed, eg,
      *                        `'refreshInterval'`.
-     * @param string $title   The setting's display name, eg, `'Refresh Interval'`.
+     * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $pluginName   The name of the plugin the setting belongs to
+     * @throws Exception
      */
-    public function __construct(SettingConfig $config, $pluginName)
+    public function __construct($name, $defaultValue, $pluginName)
     {
-        $this->setDefaultTypeAndFieldIfNeeded($config);
+        if (!ctype_alnum(str_replace('_', '', $name))) {
+            $msg = sprintf('The setting name "%s" in plugin "%s" is invalid. Only underscores, alpha and numerical characters are allowed', $name, $pluginName);
+            throw new Exception($msg);
+        }
 
-        $this->config = $config;
-        $this->key = $config->getName();
+        $this->name = $name;
+        $this->key = $name;
+        $this->defaultValue = $defaultValue;
         $this->pluginName = $pluginName;
     }
 
     public function getName()
     {
-        return $this->configure()->getName();
+        return $this->name;
+    }
+
+    public function setConfigureCallback($callback)
+    {
+        $this->configureCallback = $callback;
+    }
+
+    public function getDefaultValue()
+    {
+        return $this->defaultValue;
     }
 
     public function configure()
     {
-        if ($this->configureCallback) {
+        if ($this->configureCallback && !$this->config) {
+            $this->config = new SettingConfig();
             call_user_func($this->configureCallback, $this->config);
+            $this->setDefaultTypeAndFieldIfNeeded($this->config);
+        } else if (!$this->config) {
+            return new SettingConfig();
         }
 
-        return $this->config;
-    }
-
-    public function getConfig()
-    {
         return $this->config;
     }
 
@@ -139,7 +160,7 @@ abstract class Setting
      */
     public function getValue()
     {
-        return $this->storage->getValue($this->key, $this->config->defaultValue);
+        return $this->storage->getValue($this->key, $this->defaultValue);
     }
 
     /**
@@ -164,12 +185,14 @@ abstract class Setting
      */
     public function setValue($value)
     {
+        $config = $this->configure();
+
         $this->validateValue($value);
 
-        if ($this->config->transform && $this->config->transform instanceof \Closure) {
-            $value = call_user_func($this->config->transform, $value, $this);
-        } elseif (isset($this->type)) {
-            settype($value, $this->type);
+        if ($config->transform && $config->transform instanceof \Closure) {
+            $value = call_user_func($config->transform, $value, $this);
+        } elseif (isset($config->type)) {
+            settype($value, $config->type);
         }
 
         $this->storage->setValue($this->key, $value);
@@ -179,22 +202,24 @@ abstract class Setting
     {
         $this->checkHasEnoughWritePermission();
 
-        if ($this->config->validate && $this->config->validate instanceof \Closure) {
-            call_user_func($this->config->validate, $value, $this);
-        } elseif (is_array($this->config->availableValues)) {
+        $config = $this->configure();
+
+        if ($config->validate && $config->validate instanceof \Closure) {
+            call_user_func($config->validate, $value, $this);
+        } elseif (is_array($config->availableValues)) {
 
             // TODO move error message creation to a subclass, eg in MeasurableSettings we do not want to mention plugin name
             $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingsValueNotAllowed',
-                                         array($this->config->title, $this->pluginName));
+                                         array($config->title, $this->pluginName));
 
-            if (is_array($value) && $this->config->type === SettingConfig::TYPE_ARRAY) {
+            if (is_array($value) && $config->type === SettingConfig::TYPE_ARRAY) {
                 foreach ($value as $val) {
-                    if (!array_key_exists($val, $this->config->availableValues)) {
+                    if (!array_key_exists($val, $config->availableValues)) {
                         throw new \Exception($errorMsg);
                     }
                 }
             } else {
-                if (!array_key_exists($value, $this->config->availableValues)) {
+                if (!array_key_exists($value, $config->availableValues)) {
                     throw new \Exception($errorMsg);
                 }
             }
@@ -212,16 +237,13 @@ abstract class Setting
         }
 
         if (!$this->isWritableByCurrentUser()) {
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->config->getName(), $this->pluginName));
+            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->name, $this->pluginName));
             throw new \Exception($errorMsg);
         }
     }
 
     private function setDefaultTypeAndFieldIfNeeded(SettingConfig $config)
     {
-        if (empty($config) || !$config instanceof SettingConfig) {
-            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);exit;
-        }
         if (!isset($config->type)) {
             $config->type = $config->getDefaultType($config->uiControlType);
         }

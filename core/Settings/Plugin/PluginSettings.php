@@ -36,18 +36,21 @@ abstract class PluginSettings extends Settings
         $this->init();
     }
 
-    protected function makeSystemSetting($config)
+    protected function makeSystemSetting($name, $defaultValue, $configureCallback)
     {
-        $setting = new SystemSetting($config, $this->pluginName);
+        $setting = new SystemSetting($name, $defaultValue, $this->pluginName);
+        $setting->setConfigureCallback($configureCallback);
         $this->addSetting($setting);
         return $setting;
     }
 
-    protected function makeUserSetting($config)
+    protected function makeUserSetting($name, $defaultValue, $configureCallback)
     {
         $userLogin = Piwik::getCurrentUserLogin();
 
-        $setting = new UserSetting($config, $this->pluginName, $userLogin);
+        $setting = new UserSetting($name, $defaultValue, $this->pluginName, $userLogin);
+        $setting->setConfigureCallback($configureCallback);
+
         $this->addSetting($setting);
         return $setting;
     }

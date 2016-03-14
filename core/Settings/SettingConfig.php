@@ -142,16 +142,6 @@ class SettingConfig
     public $transform = null;
 
     /**
-     * Default value of this setting.
-     *
-     * The default value is not casted to the appropriate data type. This means _**you**_ have to make
-     * sure the value is of the correct type.
-     *
-     * @var mixed
-     */
-    public $defaultValue = null;
-
-    /**
      * This setting's display name, for example, `'Refresh Interval'`.
      *
      * @var string
@@ -170,27 +160,6 @@ class SettingConfig
      * @var string
      */
     public $showIf;
-
-    /**
-     * @var string
-     */
-    private $name;
-
-    public function __construct($name, $title)
-    {
-        if (!ctype_alnum(str_replace('_', '', $name))) {
-            $msg = sprintf('The setting name "%s" Only underscores, alpha and numerical characters are allowed', $name);
-            throw new \Exception($msg);
-        }
-
-        $this->name = $name;
-        $this->title = $title;
-    }
-
-    public function getName()
-    {
-        return $this->name;
-    }
 
     public function getDefaultType($controlType)
     {
