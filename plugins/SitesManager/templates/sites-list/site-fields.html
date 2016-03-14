@@ -1,4 +1,4 @@
-<div class="site" idsite="{{site.idsite}}" ng-class="{'editingSite': site.editMode==true}">
+<div class="site" idsite="{{site.idSite}}" ng-class="{'editingSite': site.editMode==true}">
 
     <div class="row" ng-if="!site.editMode">
 
@@ -70,6 +70,8 @@
             <label>{{ 'General_Name'|translate }}</label>
             <input type="text" ng-model="site.name"/>
         </div>
+
+        <div piwik-activity-indicator loading="site.isLoading"></div>
 
         <div ng-repeat="settingsPerPlugin in measurableSettings">
             <div ng-repeat="setting in settingsPerPlugin.settings">

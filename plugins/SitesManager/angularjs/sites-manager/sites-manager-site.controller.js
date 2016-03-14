@@ -18,7 +18,10 @@
             initModel();
             initActions();
 
+            $scope.site.isLoading = true;
             sitesManagerTypeModel.fetchTypeById($scope.site.type).then(function (type) {
+                $scope.site.isLoading = false;
+
                 if (type) {
                     $scope.currentType = type;
                     $scope.howToSetupUrl = type.howToSetupUrl;
@@ -54,8 +57,12 @@
             $scope.site.editMode = true;
 
             $scope.measurableSettings = [];
+            $scope.site.isLoading = true;
             piwikApi.fetch({method: 'SitesManager.getSettings', idSite: $scope.site.idsite}).then(function (settings) {
                 $scope.measurableSettings = settings;
+                $scope.site.isLoading = false;
+            }, function () {
+                $scope.site.isLoading = false;
             });
         };
 
