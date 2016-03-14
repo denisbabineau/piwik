@@ -45,7 +45,8 @@ class SettingsMetadata
             $message = $e->getMessage();
 
             if (!empty($setting)) {
-                throw new Exception($setting->configure()->title . ': ' . $message);
+                $title = Piwik::translate($setting->configure()->title);
+                throw new Exception($title . ': ' . $message);
             }
         }
     }

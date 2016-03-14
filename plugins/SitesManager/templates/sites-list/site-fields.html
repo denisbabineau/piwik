@@ -94,7 +94,7 @@
         </div>
 
         <div class="editingSiteFooter">
-            <input type="submit" class="btn" value="{{ 'General_Save' | translate }}" ng-click="saveSite()"/>
+            <input ng-show="!site.isLoading" type="submit" class="btn" value="{{ 'General_Save' | translate }}" ng-click="saveSite()"/>
             <button class="btn btn-link" ng-click="cancelEditSite(site)">{{ 'General_Cancel' | translate:'':'' }}</button>
         </div>
 

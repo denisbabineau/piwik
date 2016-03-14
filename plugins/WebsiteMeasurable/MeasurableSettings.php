@@ -9,8 +9,10 @@
 namespace Piwik\Plugins\WebsiteMeasurable;
 use Piwik\Common;
 use Piwik\IP;
+use Piwik\Network\IPUtils;
 use Piwik\Piwik;
 use Piwik\Plugin;
+use Piwik\Plugins\WebsiteMeasurable\Settings\Urls;
 use Piwik\Settings\Setting;
 use Piwik\Settings\SettingConfig;
 use Piwik\Plugins\SitesManager;
@@ -84,63 +86,15 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
     protected function init()
     {
         $sitesManagerApi = $this->sitesManagerApi;
+        $self = $this;
 
-        $default = array("http://siteUrl.com/", "http://siteUrl2.com/");
-
-        $this->urls = $this->makeMeasurableProperty('urls', $default, function (SettingConfig $config) {
-            $config->title = 'SitesManager_Urls';
-            $config->inlineHelp = 'SitesManager_AliasUrlHelp';
-            $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
-            $config->type = SettingConfig::TYPE_ARRAY;
-            $config->uiControlAttributes = array('cols' => '25', 'rows' => '3');
-
-            $config->validate = function ($urls) {
-                if (!is_array($urls)) {
-                    $urls = array($urls);
-                }
-
-                foreach ($urls as $url) {
-                    if (!UrlHelper::isLookLikeUrl($url)) {
-                        throw new Exception(sprintf(Piwik::translate('SitesManager_ExceptionInvalidUrl'), $url));
-                    }
-                }
-            };
-
-            $config->transform = function ($urls) {
-                if (!is_array($urls)) {
-                    $urls = array($urls);
-                }
-
-                $urls = array_filter($urls);
-                $urls = array_map('urldecode', $urls);
-
-                foreach ($urls as &$url) {
-                    // if there is a final slash, we take the URL without this slash (expected URL format)
-                    if (strlen($url) > 5
-                        && $url[strlen($url) - 1] == '/'
-                    ) {
-                        $url = substr($url, 0, strlen($url) - 1);
-                    }
-
-                    $scheme = parse_url($url, PHP_URL_SCHEME);
-                    if (empty($scheme)
-                        && strpos($url, '://') === false
-                    ) {
-                        $url = 'http://' . $url;
-                    }
-                    $url = trim($url);
-                    $url = Common::sanitizeInputValue($url);
-                }
-
-                $urls = array_unique($urls);
-                return $urls;
-            };
-        });
+        $this->urls = new Urls($this->idSite);
+        $this->addSetting($this->urls);
 
         $this->excludeKnownUrls = $this->makeMeasurableProperty('exclude_unknown_urls', $default = false, function (SettingConfig $config) {
             $config->title = 'SitesManager_OnlyMatchedUrlsAllowed';
             $config->inlineHelp = array('SitesManager_OnlyMatchedUrlsAllowedHelp', 'SitesManager_OnlyMatchedUrlsAllowedHelpExamples');
-            $config->type = SettingConfig::TYPE_ARRAY;
+            $config->type = SettingConfig::TYPE_INT;
             $config->uiControl = SettingConfig::UI_CONTROL_CHECKBOX;
             $config->transform = function ($value) {
                 $values = explode($value, "\n");
@@ -176,9 +130,32 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
             $config->type = SettingConfig::TYPE_ARRAY;
             $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->uiControlAttributes = array('cols' => '20', 'rows' => '4');
+
+            $config->validate = function ($value) {
+                if (!empty($value)) {
+                    $ips = array_map('trim', $value);
+                    $ips = array_filter($ips, 'strlen');
+
+                    foreach ($ips as $ip) {
+                        if (IPUtils::getIPRangeBounds($ip) === null) {
+                            throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidIPFormat', array($ip, "1.2.3.4, 1.2.3.*, or 1.2.3.4/5")));
+                        }
+                    }
+                }
+            };
+            $config->transform = function ($value) {
+                if (empty($value)) {
+                    return array();
+                }
+
+                $ips = array_map('trim', $value);
+                $ips = array_filter($ips, 'strlen');
+                $ips = implode(',', $ips);
+                return $ips;
+            };
         });
 
-        $this->excludedParameters = $this->makeMeasurableProperty('excluded_parameters', $default = array(), function (SettingConfig $config) {
+        $this->excludedParameters = $this->makeMeasurableProperty('excluded_parameters', $default = array(), function (SettingConfig $config) use ($self) {
             $config->title = 'SitesManager_ExcludedParameters';
             $config->inlineHelp = array('SitesManager_ListOfQueryParametersToExclude',
                                         '',
@@ -186,9 +163,12 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
             $config->type = SettingConfig::TYPE_ARRAY;
             $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->uiControlAttributes = array('cols' => '20', 'rows' => '4');
+            $config->transform = function ($value) use ($self) {
+                return $self->checkAndReturnCommaSeparatedStringList($value);
+            };
         });
 
-        $this->excludedUserAgents = $this->makeMeasurableProperty('excluded_user_agents', $default = array(), function (SettingConfig $config) {
+        $this->excludedUserAgents = $this->makeMeasurableProperty('excluded_user_agents', $default = array(), function (SettingConfig $config) use ($self) {
             $config->title = 'SitesManager_ExcludedUserAgents';
             $config->inlineHelp = array('SitesManager_GlobalExcludedUserAgentHelp1',
                 '',
@@ -197,6 +177,9 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
             $config->type = SettingConfig::TYPE_ARRAY;
             $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->uiControlAttributes = array('cols' => '20', 'rows' => '4');
+            $config->transform = function ($value) use ($self) {
+                return $self->checkAndReturnCommaSeparatedStringList($value);
+            };
         });
 
 
@@ -273,11 +256,25 @@ class MeasurableSettings extends \Piwik\Settings\Measurable\MeasurableSettings
                                         Piwik::translate('SitesManager_PiwikOffersEcommerceAnalytics',
                                                          array("<a href='http://piwik.org/docs/ecommerce-analytics/' target='_blank'>", '</a>')));
             $config->uiControl = SettingConfig::UI_CONTROL_SINGLE_SELECT;
+            $config->type = SettingConfig::TYPE_INT;
             $config->availableValues = array(
                 '0' => 'SitesManager_NotAnEcommerceSite',
                 '1' => 'SitesManager_EnableEcommerce'
             );
         });
+    }
+
+    public function checkAndReturnCommaSeparatedStringList($parameters)
+    {
+        if (empty($parameters)) {
+            return array();
+        }
+
+        $parameters = explode(',', $parameters);
+        $parameters = array_map('trim', $parameters);
+        $parameters = array_filter($parameters, 'strlen');
+        $parameters = array_unique($parameters);
+        return $parameters;
     }
 
 }

@@ -59,6 +59,7 @@ class Measurable implements BackendInterface
         }
 
         if (!empty($values['urls'])) {
+            $values['urls'] = array_unique($values['urls']);
             $urls = $values['urls'];
             $values['main_url'] = array_shift($urls);
             unset($values['urls']);
