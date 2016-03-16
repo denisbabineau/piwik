@@ -2244,7 +2244,7 @@ function PiwikTest() {
     });
 
     test("Tracker setDomains(), isSiteHostName(), isSiteHostPath(), and getLinkIfShouldBeProcessed()", function() {
-        expect(120);
+        expect(151);
 
         var tracker = Piwik.getTracker();
         var initialDomains = tracker.getDomains();
@@ -2315,6 +2315,27 @@ function PiwikTest() {
         /**
          * isSiteHostPath ()
          */
+
+        // various edge cases with wildcards or 'empty' paths
+        var testCases = [
+            ['piwik.org'],
+            ['piwik.org/'],
+            ['piwik.org/*'],
+            ['piwik.org/*', 'piwik.org/foo' ],
+            ['piwik.org/foo', 'piwik.org/*' ],
+            ['piwik.org/foo', 'piwik.org/*', 'piwik.org/*/bar' ],
+        ];
+        for(var i in testCases) {
+            domainTestCase = testCases[i];
+            tracker.setDomains( domainTestCase );
+
+            ok( isSiteHostPath('piwik.org', '/'), 'isSiteHostPath("piwik.org", "/") for ' +  domainTestCase );
+            ok( isSiteHostPath('piwik.org', ''), 'isSiteHostPath("piwik.org", "") for ' +  domainTestCase );
+            ok( isSiteHostPath('piwik.org', '*'), 'isSiteHostPath("piwik.org", "*") for ' +  domainTestCase);
+            ok( isSiteHostPath('piwik.org', '/*'), 'isSiteHostPath("piwik.org", "/*") for ' +  domainTestCase);
+            ok( isSiteHostPath('piwik.org', '/index'), 'isSiteHostPath("piwik.org", "/index") for ' +  domainTestCase);
+        }
+
 
         // with path
         tracker.setDomains( '.piwik.org/path' );

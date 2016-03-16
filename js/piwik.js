@@ -3112,7 +3112,7 @@ if (typeof window.Piwik !== 'object') {
 
             function isSitePath (path, pathAlias)
             {
-                var matchesAnyPath = (!pathAlias || pathAlias === '/');
+                var matchesAnyPath = (!pathAlias || pathAlias === '/' || pathAlias === '/*');
 
                 if (matchesAnyPath) {
                     return true;
@@ -3129,10 +3129,23 @@ if (typeof window.Piwik !== 'object') {
                 pathAlias = String(pathAlias).toLowerCase();
                 path = String(path).toLowerCase();
 
+                // wildcard path support
                 if(stringEndsWith(pathAlias, '*')) {
                     // remove the final '*' before comparing
                     pathAlias = pathAlias.slice(0, -1);
 
+                    // Note: this is almost duplicated from just few lines above
+                    matchesAnyPath = (!pathAlias || pathAlias === '/');
+
+                    if (matchesAnyPath) {
+                        return true;
+                    }
+
+                    if (path === pathAlias) {
+                        return true;
+                    }
+
+                    // wildcard match
                     return path.indexOf(pathAlias) === 0;
                 }
 
