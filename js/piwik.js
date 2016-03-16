@@ -3129,6 +3129,13 @@ if (typeof window.Piwik !== 'object') {
                 pathAlias = String(pathAlias).toLowerCase();
                 path = String(path).toLowerCase();
 
+                if(stringEndsWith(pathAlias, '*')) {
+                    // remove the final '*' before comparing
+                    pathAlias = pathAlias.slice(0, -1);
+
+                    return path.indexOf(pathAlias) === 0;
+                }
+
                 // we need to append slashes so /foobarbaz won't match a site /foobar
                 if (!stringEndsWith(path, '/')) {
                     path += '/';
@@ -3141,6 +3148,15 @@ if (typeof window.Piwik !== 'object') {
                 return path.indexOf(pathAlias) === 0;
             }
 
+            /**
+             * Whether the specified domain name and path belong to any of the alias domains (eg. set via setDomains).
+             *
+             * Note: this function is used to determine whether a click on a URL will be considered an "Outlink".
+             *
+             * @param host
+             * @param path
+             * @returns {boolean}
+             */
             function isSiteHostPath(host, path)
             {
                 var i,
