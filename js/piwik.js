@@ -5550,8 +5550,11 @@ if (typeof window.Piwik !== 'object') {
 
                 /**
                  * Set array of domains to be treated as local. Also supports path, eg '.piwik.org/subsite1'. In this
-                 * case all links that don't go to '*.piwik.org/subsite1/ *' would be treated as outlinks.
+                 * case all links that don't go to '*.piwik.org/subsite1/*' would be treated as outlinks.
                  * For example a link to 'piwik.org/' or 'piwik.org/subsite2' both would be treated as outlinks.
+                 *
+                 * Also supports page wildcard, eg 'piwik.org/index*'. In this case all links
+                 * that don't go to piwik.org/index* would be treated as outlinks.
                  *
                  * @param string|array hostsAlias
                  */
