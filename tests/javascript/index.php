@@ -2244,7 +2244,7 @@ function PiwikTest() {
     });
 
     test("Tracker setDomains(), isSiteHostName(), isSiteHostPath(), and getLinkIfShouldBeProcessed()", function() {
-        expect(151);
+        expect(154);
 
         var tracker = Piwik.getTracker();
         var initialDomains = tracker.getDomains();
@@ -2401,6 +2401,11 @@ function PiwikTest() {
         ok( isSiteHostPath('piwik.org', '/index.htm'), "isSiteHostPath('piwik.org', '/index.htm')" );
         ok( isSiteHostPath('piwik.org', '/index_en.htm'), "isSiteHostPath('piwik.org', '/index_en.htm')" );
         ok( isSiteHostPath('piwik.org', '/index*page'), "isSiteHostPath('piwik.org', '/index*page')" );
+
+        tracker.setDomains( ['piwik.org/index*', 'piwik.org'] );
+        ok( isSiteHostPath('piwik.org', '/index*page'), "isSiteHostPath('piwik.org', '/index*page')" );
+        ok( isSiteHostPath('piwik.org', ''), "isSiteHostPath('piwik.org', '')" );
+        ok( isSiteHostPath('piwik.org', '/'), "isSiteHostPath('piwik.org', '/')" );
 
         // all is compared lower case
         tracker.setDomains( '.piwik.oRg/PaTh' );
