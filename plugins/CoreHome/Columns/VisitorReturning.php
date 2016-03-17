@@ -52,8 +52,7 @@ class VisitorReturning extends VisitDimension
         $visitCount = $request->getVisitCount();
         $daysSinceFirstVisit = $request->getDaysSinceFirstVisit();
 
-        $daysSinceLastOrder = $request->getDaysSinceLastOrder();
-        $isReturningCustomer = ($daysSinceLastOrder !== false);
+        $isReturningCustomer = $request->getDaysSinceLastOrder() > 0;
 
         if ($isReturningCustomer) {
             return self::IS_RETURNING_CUSTOMER;
