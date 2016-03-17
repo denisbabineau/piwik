@@ -195,12 +195,11 @@
         };
 
         var initKeepURLFragmentsList = function() {
-
-            $scope.keepURLFragmentsOptions = {
-                0: ($scope.globalSettings.keepURLFragmentsGlobal ? translate('General_Yes') : translate('General_No')) + ' (' + translate('General_Default') + ')',
-                1: translate('General_Yes'),
-                2: translate('General_No')
-            };
+            $scope.keepURLFragmentsOptions = [
+                {key: '0', value: ($scope.globalSettings.keepURLFragmentsGlobal ? translate('General_Yes') : translate('General_No')) + ' (' + translate('General_Default') + ')'},
+                {key: '1', value: translate('General_Yes')},
+                {key: '2', value: translate('General_No')}
+            ];
         };
 
         var addNewEntity = function () {
