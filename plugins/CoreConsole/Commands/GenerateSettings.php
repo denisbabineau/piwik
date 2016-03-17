@@ -31,7 +31,7 @@ class GenerateSettings extends GeneratePluginBase
 
         $exampleFolder  = PIWIK_INCLUDE_PATH . '/plugins/ExampleSettingsPlugin';
         $replace        = array('ExampleSettingsPlugin' => $pluginName);
-        $whitelistFiles = array('/Settings.php');
+        $whitelistFiles = array('/SystemSettings.php', '/UserSettings.php');
 
         $this->copyTemplateToPlugin($exampleFolder, $pluginName, $replace, $whitelistFiles);
 
@@ -50,7 +50,7 @@ class GenerateSettings extends GeneratePluginBase
      */
     protected function getPluginName(InputInterface $input, OutputInterface $output)
     {
-        $pluginNames = $this->getPluginNamesHavingNotSpecificFile('Settings.php');
+        $pluginNames = $this->getPluginNamesHavingNotSpecificFile('SystemSettings.php');
         $invalidName = 'You have to enter the name of an existing plugin which does not already have settings';
 
         return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);

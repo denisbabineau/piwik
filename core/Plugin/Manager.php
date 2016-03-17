@@ -400,7 +400,7 @@ class Manager
         $this->loadAllPluginsAndGetTheirInfo();
 
         $factory = new SettingsStorage\Factory();
-        $factory->getPluginStorage($pluginName)->delete();
+        $factory->getPluginStorage($pluginName, $userLogin = '')->deleteAllValues();
 
         $this->executePluginDeactivate($pluginName);
         $this->executePluginUninstall($pluginName);

@@ -11,6 +11,7 @@ namespace Piwik\Updates;
 
 use Piwik\Common;
 use Piwik\Db;
+use Piwik\DbHelper;
 use Piwik\Updater;
 use Piwik\Updates;
 use Piwik\Plugins\Dashboard;
@@ -30,12 +31,86 @@ class Updates_3_0_0_b1 extends Updates
         $allGoals = $db->fetchAll(sprintf("SELECT DISTINCT idgoal FROM %s", Common::prefixTable('goal')));
         $allDashboards = $db->fetchAll(sprintf("SELECT * FROM %s", Common::prefixTable('user_dashboard')));
 
-        return $this->getDashboardMigrationSqls($allDashboards, $allGoals);
+        $queries = $this->getDashboardMigrationSqls($allDashboards, $allGoals);
+        $queries = $this->getPluginSettingsMigrationQueries($queries, $db);
+
+        return $queries;
     }
 
     public function doUpdate(Updater $updater)
     {
         $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+    }
+
+    /**
+     * @param $queries
+     * @param Db $db
+     * @return mixed
+     */
+    private function getPluginSettingsMigrationQueries($queries, $db)
+    {
+        $pluginSettingsTableName = $this->getPluginSettingsTableName();
+        $dbSettings = new Db\Settings();
+        $engine = $dbSettings->getEngine();
+
+        $pluginSettingsTable = "CREATE TABLE $pluginSettingsTableName (
+                          `plugin_name` VARCHAR(60) NOT NULL,
+                          `setting_name` VARCHAR(255) NOT NULL,
+                          `setting_value` LONGTEXT NOT NULL,
+                          `user_login` VARCHAR(100) NOT NULL DEFAULT '',
+                              PRIMARY KEY(plugin_name, setting_name, login)
+                            ) ENGINE=$engine DEFAULT CHARSET=utf8
+            ";
+        $queries[$pluginSettingsTable] = 1050;
+
+        $query = sprintf('SELECT option_name, option_value FROM %s WHERE option_name like "Plugin_%%_Settings"', Common::prefixTable('option'));
+        $options = $db->fetchAll($query);
+
+        foreach ($options as $option) {
+            $name = $option['option_name'];
+            $pluginName = str_replace(array('Plugin_', '_Settings'), '', $name);
+            $values = @unserialize($option['option_value']);
+
+            if (empty($values)) {
+                continue;
+            }
+
+            foreach ($values as $settingName => $settingValue) {
+                if (!is_array($settingValue)) {
+                    $settingValue = array($settingValue);
+                }
+
+                foreach ($settingValue as $val) {
+                    $queries[$this->createPluginSettingQuery($pluginName, $settingName, $val)] = false;
+                }
+            }
+        }
+
+        $queries[$query = sprintf('DELETE FROM %s WHERE option_name like "Plugin_%%_Settings"', Common::prefixTable('option'))] = false;
+
+        return $queries;
+    }
+
+    private function createPluginSettingQuery($pluginName, $settingName, $settingValue)
+    {
+        $table = $this->getPluginSettingsTableName();
+
+        $login = '';
+        if (preg_match('/^.+#(.+)#$/', $settingName, $matches)) {
+            $login = $matches[1];
+            $settingName = str_replace('#' . $login . '#', '', $settingName);
+        }
+
+        // TODO prevent sql injection
+        $query  = sprintf("INSERT INTO %s (plugin_name, setting_name, setting_value, user_login) VALUES ", $table);
+        $query .= sprintf("('%s', '%s', '%s', '%s')", $pluginName, $settingName, $settingValue, $login);
+
+        return $query;
+    }
+
+    private function getPluginSettingsTableName()
+    {
+        return Common::prefixTable('plugin_setting');
     }
 
     private function getDashboardMigrationSqls($allDashboards, $allGoals)

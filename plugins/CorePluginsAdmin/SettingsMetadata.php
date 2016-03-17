@@ -20,18 +20,13 @@ class SettingsMetadata
     /**
      * @param Settings[]  $settingsInstances
      * @param array $settingValues   array('pluginName' => array('settingName' => 'settingValue'))
-     * @param \Callable $filterCallback
      * @throws Exception;
      */
-    public function setPluginSettings($settingsInstances, $settingValues, $filterCallback)
+    public function setPluginSettings($settingsInstances, $settingValues)
     {
         try {
             foreach ($settingsInstances as $pluginName => $pluginSetting) {
                 foreach ($pluginSetting->getSettingsWritableByCurrentUser() as $setting) {
-
-                    if (!call_user_func($filterCallback, $setting)) {
-                        continue;
-                    }
 
                     $value = $this->findSettingValueFromRequest($settingValues, $pluginName, $setting->getName());
 
@@ -75,20 +70,28 @@ class SettingsMetadata
 
 
     /**
-     * @param Setting[][] $writableSettings A list of Settings instead by pluginname
+     * @param Settings[] $allSettings A list of Settings instead by pluginname
      * @return array
      */
-    public function formatSettings($writableSettings)
+    public function formatSettings($allSettings)
     {
         $metadata = array();
-        foreach ($writableSettings as $pluginName => $settings) {
+        foreach ($allSettings as $pluginName => $settings) {
+            $writableSettings = $settings->getSettingsWritableByCurrentUser();
+
+            if (empty($writableSettings)) {
+                continue;
+            }
+
             $plugin = array(
                 'pluginName' => $pluginName,
                 'settings' => array()
             );
-            foreach ($settings as $writableSetting) {
+
+            foreach ($writableSettings as $writableSetting) {
                 $plugin['settings'][] = $this->formatMetadata($writableSetting);
             }
+
             $metadata[] = $plugin;
         }
 

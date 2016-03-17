@@ -38,14 +38,30 @@ class SettingsProvider
     }
 
     /**
-     * @return \Piwik\Settings\Plugin\PluginSettings|null
+     * @return \Piwik\Settings\Plugin\SystemSettings|null
      */
-    public function getPluginSettings($pluginName)
+    public function getSystemSetting($pluginName)
     {
         $plugin = $this->getLoadedAndActivated($pluginName);
 
         if ($plugin) {
-            $settings = $plugin->findComponent('PluginSettings', 'Piwik\\Settings\\Plugin\\PluginSettings');
+            $settings = $plugin->findComponent('SystemSettings', 'Piwik\\Settings\\Plugin\\SystemSettings');
+
+            if ($settings) {
+                return StaticContainer::get($settings);
+            }
+        }
+    }
+
+    /**
+     * @return \Piwik\Settings\Plugin\UserSettings|null
+     */
+    public function getUserSetting($pluginName)
+    {
+        $plugin = $this->getLoadedAndActivated($pluginName);
+
+        if ($plugin) {
+            $settings = $plugin->findComponent('UserSettings', 'Piwik\\Settings\\Plugin\\UserSettings');
 
             if ($settings) {
                 return StaticContainer::get($settings);
@@ -58,11 +74,11 @@ class SettingsProvider
      * `Settings.php` containing a class named `Settings` that extends `Piwik\Settings\Settings` in order to be
      * considered as a plugin setting. Otherwise the settings for a plugin won't be available.
      *
-     * @return \Piwik\Settings\Plugin\PluginSettings[]   An array containing array([pluginName] => [setting instance]).
+     * @return \Piwik\Settings\Plugin\SystemSettings[]   An array containing array([pluginName] => [setting instance]).
      */
-    public function getAllPluginSettings()
+    public function getAllSystemSettings()
     {
-        $cacheId = CacheId::languageAware('AllPluginSettings');
+        $cacheId = CacheId::languageAware('AllSystemSettings');
         $cache = PiwikCache::getTransientCache();
 
         if (!$cache->contains($cacheId)) {
@@ -70,7 +86,37 @@ class SettingsProvider
             $byPluginName = array();
 
             foreach ($pluginNames as $plugin) {
-                $component = $this->getPluginSettings($plugin);
+                $component = $this->getSystemSetting($plugin);
+
+                if (!empty($component)) {
+                    $byPluginName[$plugin] = $component;
+                }
+            }
+
+            $cache->save($cacheId, $byPluginName);
+        }
+
+        return $cache->fetch($cacheId);
+    }
+
+    /**
+     * Returns all available plugin settings, even settings for inactive plugins. A plugin has to specify a file named
+     * `Settings.php` containing a class named `Settings` that extends `Piwik\Settings\Settings` in order to be
+     * considered as a plugin setting. Otherwise the settings for a plugin won't be available.
+     *
+     * @return \Piwik\Settings\Plugin\UserSettings[]   An array containing array([pluginName] => [setting instance]).
+     */
+    public function getAllUserSettings()
+    {
+        $cacheId = CacheId::languageAware('AllUserSettings');
+        $cache = PiwikCache::getTransientCache();
+
+        if (!$cache->contains($cacheId)) {
+            $pluginNames = $this->pluginManager->getActivatedPlugins();
+            $byPluginName = array();
+
+            foreach ($pluginNames as $plugin) {
+                $component = $this->getUserSetting($plugin);
 
                 if (!empty($component)) {
                     $byPluginName[$plugin] = $component;

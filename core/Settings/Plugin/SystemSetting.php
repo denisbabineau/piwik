@@ -38,7 +38,7 @@ class SystemSetting extends Setting
         parent::__construct($name, $defaultValue, $pluginName);
 
         $factory = StaticContainer::get('Piwik\Settings\Storage\Factory');
-        $this->storage = $factory->getPluginStorage($this->pluginName);
+        $this->storage = $factory->getPluginStorage($this->pluginName, $userLogin = '');
 
         $this->setIsWritableByCurrentUser(Piwik::hasUserSuperUserAccess());
     }

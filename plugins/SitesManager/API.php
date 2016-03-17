@@ -20,7 +20,7 @@ use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugin\SettingsProvider;
 use Piwik\Plugins\CorePluginsAdmin\SettingsMetadata;
-use Piwik\Plugins\WebsiteMeasurable\Urls;
+use Piwik\Plugins\WebsiteMeasurable\Settings\Urls;
 use Piwik\Settings\Measurable\MeasurableSettings;
 use Piwik\ProxyHttp;
 use Piwik\Scheduler\Scheduler;
@@ -690,9 +690,7 @@ class API extends \Piwik\Plugin\API
     {
         $measurableSettings = $this->settingsProvider->getAllMeasurableSettings($idSite, $idType);
 
-        $this->settingsMetadata->setPluginSettings($measurableSettings, $settings, function ($setting) {
-            return true;
-        });
+        $this->settingsMetadata->setPluginSettings($measurableSettings, $settings);
 
         return $measurableSettings;
     }
@@ -750,21 +748,6 @@ class API extends \Piwik\Plugin\API
          * @param int $idSite The ID of the site being deleted.
          */
         Piwik::postEvent('SitesManager.deleteSite.end', array($idSite));
-    }
-
-    /**
-     * Checks that the array has at least one element
-     *
-     * @param array $urls
-     * @throws Exception
-     */
-    private function checkAtLeastOneUrl($urls)
-    {
-        if (!is_array($urls)
-            || count($urls) == 0
-        ) {
-            throw new Exception(Piwik::translate("SitesManager_ExceptionNoUrl"));
-        }
     }
 
     private function checkValidTimezone($timezone)

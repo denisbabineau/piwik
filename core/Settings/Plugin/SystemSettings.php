@@ -24,7 +24,7 @@ use Piwik\Settings\Storage;
  *
  * @api
  */
-abstract class PluginSettings extends Settings
+abstract class SystemSettings extends Settings
 {
     /**
      * Constructor.
@@ -36,21 +36,10 @@ abstract class PluginSettings extends Settings
         $this->init();
     }
 
-    protected function makeSystemSetting($name, $defaultValue, $configureCallback)
+    protected function makeSetting($name, $defaultValue, $configureCallback)
     {
         $setting = new SystemSetting($name, $defaultValue, $this->pluginName);
         $setting->setConfigureCallback($configureCallback);
-        $this->addSetting($setting);
-        return $setting;
-    }
-
-    protected function makeUserSetting($name, $defaultValue, $configureCallback)
-    {
-        $userLogin = Piwik::getCurrentUserLogin();
-
-        $setting = new UserSetting($name, $defaultValue, $this->pluginName, $userLogin);
-        $setting->setConfigureCallback($configureCallback);
-
         $this->addSetting($setting);
         return $setting;
     }

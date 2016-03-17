@@ -481,7 +481,7 @@ describe("UIIntegrationTest", function () { // TODO: Rename to Piwik?
 
     it('should load the plugin settings admin page correctly', function (done) {
         expect.screenshot('admin_plugin_settings').to.be.captureSelector('.pageWrap', function (page) {
-            page.load("?" + generalParams + "&module=CorePluginsAdmin&action=adminPluginSettings");
+            page.load("?" + generalParams + "&module=CoreAdminHome&action=generalSettings");
         }, done);
     });
 

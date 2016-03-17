@@ -15,21 +15,12 @@ use Piwik\Settings\SettingConfig;
  * Defines Settings for ExampleSettingsPlugin.
  *
  * Usage like this:
- * $settings = new PluginSettings();
- * $settings->autoRefresh->getValue();
+ * $settings = new SystemSettings();
  * $settings->metric->getValue();
+ * $settings->description->getValue();
  */
-class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
+class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 {
-    /** @var Setting */
-    public $autoRefresh;
-
-    /** @var Setting */
-    public $refreshInterval;
-
-    /** @var Setting */
-    public $color;
-
     /** @var Setting */
     public $metric;
 
@@ -44,15 +35,6 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 
     protected function init()
     {
-        // User setting --> checkbox converted to bool
-        $this->autoRefresh = $this->createAutoRefreshSetting();
-
-        // User setting --> textbox converted to int defining a validator and filter
-        $this->refreshInterval = $this->createRefreshIntervalSetting();
-
-        // User setting --> radio
-        $this->color = $this->createColorSetting();
-
         // System setting --> allows selection of a single value
         $this->metric = $this->createMetricSetting();
 
@@ -66,46 +48,9 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
         $this->password = $this->createPasswordSetting();
     }
 
-    private function createAutoRefreshSetting()
-    {
-        return $this->makeUserSetting('autoRefresh', $default = false, function (SettingConfig $config) {
-            $config->title = 'Auto refresh';
-            $config->type = SettingConfig::TYPE_BOOL;
-            $config->uiControl = SettingConfig::UI_CONTROL_CHECKBOX;
-            $config->description = 'If enabled, the value will be automatically refreshed depending on the specified interval';
-        });
-    }
-
-    private function createRefreshIntervalSetting()
-    {
-        return $this->makeUserSetting('refreshInterval', $default = '30', function (SettingConfig $config) {
-                $config->title = 'Refresh Interval';
-                $config->type  = SettingConfig::TYPE_INT;
-                $config->uiControl = SettingConfig::UI_CONTROL_TEXT;
-                $config->uiControlAttributes = array('size' => 3);
-                $config->description = 'Defines how often the value should be updated';
-                $config->inlineHelp  = 'Enter a number which is >= 15';
-                $config->validate = function ($value, $setting) {
-                if ($value < 15) {
-                    throw new \Exception('Value is invalid');
-                }
-            };
-        });
-    }
-
-    private function createColorSetting()
-    {
-        return $this->makeUserSetting('color', $default = 'red', function (SettingConfig $config) {
-            $config->title = 'Color';
-            $config->uiControl = SettingConfig::UI_CONTROL_RADIO;
-            $config->description = 'Pick your favourite color';
-            $config->availableValues = array('red' => 'Red', 'blue' => 'Blue', 'green' => 'Green');
-        });
-    }
-
     private function createMetricSetting()
     {
-        return $this->makeSystemSetting('metric', $default = 'nb_visits', function (SettingConfig $config) {
+        return $this->makeSetting('metric', $default = 'nb_visits', function (SettingConfig $config) {
             $config->title = 'Metric to display';
             $config->type = SettingConfig::TYPE_STRING;
             $config->uiControl = SettingConfig::UI_CONTROL_SINGLE_SELECT;
@@ -119,7 +64,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
     {
         $default = array('firefox', 'chromium', 'safari');
 
-        return $this->makeSystemSetting('browsers', $default, function (SettingConfig $config) {
+        return $this->makeSetting('browsers', $default, function (SettingConfig $config) {
             $config->title = 'Supported Browsers';
             $config->type = SettingConfig::TYPE_ARRAY;
             $config->uiControl = SettingConfig::UI_CONTROL_MULTI_SELECT;
@@ -132,7 +77,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
     {
         $default = "This is the value: \nAnother line";
 
-        return $this->makeSystemSetting('description', $default, function (SettingConfig $config) {
+        return $this->makeSetting('description', $default, function (SettingConfig $config) {
             $config->title = 'Description for value';
             $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->description = 'This description will be displayed next to the value';
@@ -141,7 +86,7 @@ class PluginSettings extends \Piwik\Settings\Plugin\PluginSettings
 
     private function createPasswordSetting()
     {
-        return $this->makeSystemSetting('password', $default = null, function (SettingConfig $config) {
+        return $this->makeSetting('password', $default = null, function (SettingConfig $config) {
             $config->title = 'API password';
             $config->uiControl = SettingConfig::UI_CONTROL_PASSWORD;
             $config->description = 'Password for the 3rd API where we fetch the value';

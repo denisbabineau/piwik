@@ -12,6 +12,7 @@ use Piwik\Db;
 use Piwik\Piwik;
 use Piwik\ProxyHttp;
 use Piwik\Settings\Plugin\UserSetting;
+use Piwik\Settings\Storage\Backend\PluginSettingsTable;
 
 /**
  *
@@ -35,7 +36,7 @@ class CoreAdminHome extends \Piwik\Plugin
 
     public function cleanupUser($userLogin)
     {
-        UserSetting::removeAllUserSettingsForUser($userLogin);
+        PluginSettingsTable::removeAllUserSettingsForUser($userLogin);
     }
 
     public function getStylesheetFiles(&$stylesheets)

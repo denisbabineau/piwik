@@ -118,17 +118,6 @@ class API extends \Piwik\Plugin\API
             $settingsProvider = new SettingsProvider(\Piwik\Plugin\Manager::getInstance());
             $measurableSettings = $settingsProvider->getAllMeasurableSettings($idSite = 0, $type->getId());
 
-            $writableSettings = array();
-
-            foreach ($measurableSettings as $pluginName => $settings) {
-                foreach ($settings->getSettingsWritableByCurrentUser() as $writableSetting) {
-                    if (!isset($writableSettings[$pluginName])) {
-                        $writableSettings[$pluginName] = array();
-                    }
-
-                    $writableSettings[$pluginName][] = $writableSetting;
-                }
-            }
             $settingsMetadata = new SettingsMetadata();
 
             $available[] = array(
@@ -136,7 +125,7 @@ class API extends \Piwik\Plugin\API
                 'name' => Piwik::translate($type->getName()),
                 'description' => Piwik::translate($type->getDescription()),
                 'howToSetupUrl' => $type->getHowToSetupUrl(),
-                'settings' => $settingsMetadata->formatSettings($writableSettings)
+                'settings' => $settingsMetadata->formatSettings($measurableSettings)
             );
         }
 

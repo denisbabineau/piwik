@@ -10,7 +10,7 @@ namespace Piwik\Tests\Integration\Settings;
 
 use Piwik\Db;
 use Piwik\Settings\Plugin\UserSetting;
-use Piwik\Settings\Plugin\PluginSettings as PluginSettings;
+use Piwik\Settings\Plugin\SystemSettings as PluginSettings;
 
 /**
  * @group PluginSettings
@@ -85,27 +85,27 @@ class UserSettingTest extends IntegrationTestCase
 
         // cast to INT
         $setting       = $this->addUserSetting('mysystem', 'mytitle');
-        $setting->type = PluginSettings::TYPE_INT;
+        $setting->type = SystemSettings::TYPE_INT;
         $setting->setValue('31xm42');
         $this->assertSettingHasValue($setting, 31, 'integer');
 
         // ARRAY
-        $setting->type = PluginSettings::TYPE_ARRAY;
+        $setting->type = SystemSettings::TYPE_ARRAY;
         $setting->setValue('31xm42');
         $this->assertSettingHasValue($setting, array('31xm42'), 'array');
 
         // BOOL
-        $setting->type = PluginSettings::TYPE_BOOL;
+        $setting->type = SystemSettings::TYPE_BOOL;
         $setting->setValue('1');
         $this->assertSettingHasValue($setting, true, 'boolean');
 
         // FLOAT
-        $setting->type = PluginSettings::TYPE_FLOAT;
+        $setting->type = SystemSettings::TYPE_FLOAT;
         $setting->setValue('1.21');
         $this->assertSettingHasValue($setting, 1.21, 'float');
 
         // STRING
-        $setting->type = PluginSettings::TYPE_STRING;
+        $setting->type = SystemSettings::TYPE_STRING;
         $setting->setValue('31xm42');
         $this->assertSettingHasValue($setting, '31xm42');
     }
@@ -115,7 +115,7 @@ class UserSettingTest extends IntegrationTestCase
         $this->setUser();
 
         $setting       = $this->buildUserSetting('mysystem', 'mytitle');
-        $setting->type = PluginSettings::TYPE_INT;
+        $setting->type = SystemSettings::TYPE_INT;
 
         $self = $this;
         $setting->transform = function ($value, $userSetting) use ($self, $setting) {
@@ -140,7 +140,7 @@ class UserSettingTest extends IntegrationTestCase
         $this->setUser();
 
         $setting       = $this->buildUserSetting('mysystem', 'mytitle');
-        $setting->type = PluginSettings::TYPE_INT;
+        $setting->type = SystemSettings::TYPE_INT;
 
         $self = $this;
         $setting->validate = function ($value, $userSetting) use ($self, $setting) {
@@ -158,7 +158,7 @@ class UserSettingTest extends IntegrationTestCase
         $this->setUser();
 
         $setting = $this->addUserSetting('mydefaultsystem', 'mytitle');
-        $setting->type = PluginSettings::TYPE_INT;
+        $setting->type = SystemSettings::TYPE_INT;
         $setting->defaultValue ='mytestvalue';
 
         // should not be casted to int
@@ -180,7 +180,7 @@ class UserSettingTest extends IntegrationTestCase
     {
         $this->setUser();
         $setting = $this->addUserSetting('myusersetting', 'mytitle');
-        $setting->type = PluginSettings::TYPE_ARRAY;
+        $setting->type = SystemSettings::TYPE_ARRAY;
         $setting->setValue(array(2,3,4));
 
         $this->assertSettingHasValue($setting, array(2,3,4));

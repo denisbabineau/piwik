@@ -7,8 +7,8 @@
  */
 
 namespace Piwik\Plugins\CorePluginsAdmin;
-use Piwik\Common;
 use Piwik\Piwik;
+use Piwik\Plugin\SettingsProvider;
 use Piwik\Settings\Plugin\SystemSetting;
 use Exception;
 use Piwik\Settings\Plugin\UserSetting;
@@ -21,18 +21,18 @@ use Piwik\Settings\Plugin\UserSetting;
 class API extends \Piwik\Plugin\API
 {
     /**
-     * @var PluginsSettings
-     */
-    private $pluginsSettings;
-
-    /**
      * @var SettingsMetadata
      */
     private $settingsMetadata;
 
-    public function __construct(PluginsSettings $pluginsSettings, SettingsMetadata $settingsMetadata)
+    /**
+     * @var SettingsProvider
+     */
+    private $settingsProvider;
+
+    public function __construct(SettingsProvider $settingsProvider, SettingsMetadata $settingsMetadata)
     {
-        $this->pluginsSettings = $pluginsSettings;
+        $this->settingsProvider = $settingsProvider;
         $this->settingsMetadata = $settingsMetadata;
     }
 
@@ -40,11 +40,9 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        $pluginsSettings = $this->pluginsSettings->getPluginSettingsForCurrentUser();
+        $pluginsSettings = $this->settingsProvider->getAllSystemSettings();
 
-        $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues, function ($setting) {
-            return $setting instanceof SystemSetting;
-        });
+        $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues);
 
         try {
             foreach ($pluginsSettings as $pluginSetting) {
@@ -59,11 +57,9 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserIsNotAnonymous();
 
-        $pluginsSettings = $this->pluginsSettings->getPluginSettingsForCurrentUser();
+        $pluginsSettings = $this->settingsProvider->getAllUserSettings();
 
-        $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues, function ($setting) {
-            return $setting instanceof UserSetting;
-        });
+        $this->settingsMetadata->setPluginSettings($pluginsSettings, $settingValues);
 
         try {
             foreach ($pluginsSettings as $pluginSetting) {
@@ -73,11 +69,12 @@ class API extends \Piwik\Plugin\API
             throw new Exception(Piwik::translate('CoreAdminHome_PluginSettingsSaveFailed'));
         }
     }
+
     public function getSystemSettings()
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        $systemSettings = $this->pluginsSettings->getAllWritableSystemSettings();
+        $systemSettings = $this->settingsProvider->getAllSystemSettings();
 
         return $this->settingsMetadata->formatSettings($systemSettings);
     }
@@ -86,7 +83,7 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserIsNotAnonymous();
 
-        $userSettings = $this->pluginsSettings->getAllWritableUserSettings();
+        $userSettings = $this->settingsProvider->getAllUserSettings();
 
         return $this->settingsMetadata->formatSettings($userSettings);
     }

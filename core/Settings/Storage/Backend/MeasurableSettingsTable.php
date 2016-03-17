@@ -11,7 +11,6 @@ namespace Piwik\Settings\Storage\Backend;
 
 use Piwik\Common;
 use Piwik\Db;
-use Piwik\Option;
 
 /**
  * Base setting type class.
@@ -50,6 +49,7 @@ class MeasurableSettingsTable implements BackendInterface
 
         $existingValues = $this->load();
 
+        //TODO this does not work unless we request per pluginname!
         foreach ($existingValues as $name => $delete) {
             if (!array_key_exists($name, $values)) {
                 $sql  = "DELETE FROM $table WHERE `idsite` = ? and `setting_name` = ?";
@@ -96,7 +96,6 @@ class MeasurableSettingsTable implements BackendInterface
         $bind  = array($this->idSite);
 
         $this->db->query($sql, $bind);
-        Option::delete($this->idSite);
     }
 
 }

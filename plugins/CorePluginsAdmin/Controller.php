@@ -40,23 +40,16 @@ class Controller extends Plugin\ControllerAdmin
     private $translator;
 
     /**
-     * @var PluginsSettings
+     * @var Plugin\SettingsProvider
      */
-    private $pluginsSettings;
+    private $settingsProvider;
 
-    public function __construct(Translator $translator, PluginsSettings $pluginsSettings)
+    public function __construct(Translator $translator, Plugin\SettingsProvider $settingsProvider)
     {
         $this->translator = $translator;
-        $this->pluginsSettings = $pluginsSettings;
+        $this->settingsProvider = $settingsProvider;
 
         parent::__construct();
-    }
-
-    public function adminPluginSettings()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        return $this->renderTemplate('pluginSettings');
     }
 
     public function marketplace()
@@ -263,7 +256,7 @@ class Controller extends Plugin\ControllerAdmin
         $view->otherUsersCount = count($users) - 1;
         $view->themeEnabled = \Piwik\Plugin\Manager::getInstance()->getThemeEnabled()->getPluginName();
 
-        $view->pluginNamesHavingSettings = $this->pluginsSettings->getPluginNamesHavingSystemSettings();
+        $view->pluginNamesHavingSettings = array_keys($this->settingsProvider->getAllSystemSettings());
         $view->isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
         $view->isPluginsAdminEnabled = CorePluginsAdmin::isPluginsAdminEnabled();
 
@@ -444,9 +437,9 @@ class Controller extends Plugin\ControllerAdmin
             }
 
             $message = $this->translator->translate('CorePluginsAdmin_SuccessfullyActicated', array($pluginName));
-            if ($this->pluginsSettings->hasSystemPluginSettingsForCurrentUser($pluginName)) {
+            if ($this->settingsProvider->getSystemSetting($pluginName)) {
                 $target   = sprintf('<a href="index.php%s#%s">',
-                    Url::getCurrentQueryStringWithParametersModified(array('module' => 'CorePluginsAdmin', 'action' => 'adminPluginSettings')),
+                    Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreAdminHome', 'action' => 'generalSettings')),
                     $pluginName);
                 $message .= ' ' . $this->translator->translate('CorePluginsAdmin_ChangeSettingsPossible', array($target, '</a>'));
             }

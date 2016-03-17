@@ -11,7 +11,7 @@ namespace Piwik\Plugins\Diagnostics\Test\Integration\Commands;
 use Piwik\Application\Kernel\GlobalSettingsProvider;
 use Piwik\Ini\IniReader;
 use Piwik\Plugins\Diagnostics\ConfigReader;
-use Piwik\Plugins\ExampleSettingsPlugin\PluginSettings;
+use Piwik\Plugins\ExampleSettingsPlugin\SystemSettings;
 use Piwik\Settings\SettingConfig;
 use Piwik\Tests\Fixtures\OneVisitorTwoVisits;
 use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
@@ -232,7 +232,7 @@ Another line',
 
     public function test_addConfigValuesFromPluginSettings_shouldMaskValueIfTypeIsPassword()
     {
-        $settings = new PluginSettings();
+        $settings = new SystemSettings();
         $settings->metric->configure()->uiControl = SettingConfig::UI_CONTROL_PASSWORD;
 
         $existing = array(

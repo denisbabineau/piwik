@@ -18,16 +18,6 @@ use Piwik\Piwik;
 class Menu extends \Piwik\Plugin\Menu
 {
 
-    /**
-     * @var PluginsSettings
-     */
-    private $pluginsSettings;
-
-    public function __construct(PluginsSettings $pluginsSettings)
-    {
-        $this->pluginsSettings = $pluginsSettings;
-    }
-
     public function configureAdminMenu(MenuAdmin $menu)
     {
         $hasSuperUserAcess    = Piwik::hasUserSuperUserAccess();
@@ -55,12 +45,6 @@ class Menu extends \Piwik\Plugin\Menu
                                    $this->urlForAction('plugins', array('activated' => '')),
                                    $order = 4);
 
-
-            if ($this->pluginsSettings->hasSystemPluginsSettingsForCurrentUser()) {
-                $menu->addSettingsItem('CoreAdminHome_PluginSettings',
-                    $this->urlForAction('adminPluginSettings'),
-                    $order = 7);
-            }
             if (CorePluginsAdmin::isMarketplaceEnabled()) {
                 $menu->addManageItem('CorePluginsAdmin_Marketplace',
                     $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'admin')),
