@@ -83,12 +83,12 @@ class Storage
      * @throws \Exception If the setting does not exist or if the current user is not allowed to change the value
      *                    of this setting.
      */
-    public function getValue($key, $defaultValue)
+    public function getValue($key, $defaultValue, $type)
     {
         $this->loadSettingsIfNotDoneYet();
 
         if (array_key_exists($key, $this->settingsValues)) {
-            return $this->settingsValues[$key];
+            return settype($type, $this->settingsValues[$key]);
         }
 
         return $defaultValue;
@@ -113,22 +113,6 @@ class Storage
 
         $this->isDirty = true;
         $this->settingsValues[$key] = $value;
-    }
-
-    /**
-     * Unsets a setting value in memory. To persist the change, {@link save()} must be
-     * called afterwards, otherwise the change has no effect.
-     *
-     * @param string $key
-     */
-    public function deleteValue($key)
-    {
-        $this->loadSettingsIfNotDoneYet();
-
-        if (array_key_exists($key, $this->settingsValues)) {
-            unset($this->settingsValues[$key]);
-            $this->isDirty = true;
-        }
     }
 
     private function clearBackendCache()

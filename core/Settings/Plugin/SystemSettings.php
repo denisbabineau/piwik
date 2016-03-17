@@ -36,9 +36,9 @@ abstract class SystemSettings extends Settings
         $this->init();
     }
 
-    protected function makeSetting($name, $defaultValue, $configureCallback)
+    protected function makeSetting($name, $defaultValue, $type, $configureCallback)
     {
-        $setting = new SystemSetting($name, $defaultValue, $this->pluginName);
+        $setting = new SystemSetting($name, $defaultValue, $type, $this->pluginName);
         $setting->setConfigureCallback($configureCallback);
         $this->addSetting($setting);
         return $setting;

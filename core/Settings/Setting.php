@@ -61,16 +61,19 @@ abstract class Setting
      */
     protected $defaultValue;
 
+    protected $type;
+
     /**
      * Constructor.
      *
      * @param string $name    The setting's persisted name. Only alphanumeric characters are allowed, eg,
      *                        `'refreshInterval'`.
      * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $type Eg an array, int, ... see SettingConfig::TYPE_* constants
      * @param string $pluginName   The name of the plugin the setting belongs to
      * @throws Exception
      */
-    public function __construct($name, $defaultValue, $pluginName)
+    public function __construct($name, $defaultValue, $type, $pluginName)
     {
         if (!ctype_alnum(str_replace('_', '', $name))) {
             $msg = sprintf('The setting name "%s" in plugin "%s" is invalid. Only underscores, alpha and numerical characters are allowed', $name, $pluginName);
@@ -79,6 +82,7 @@ abstract class Setting
 
         $this->name = $name;
         $this->key = $name;
+        $this->type = $type;
         $this->pluginName = $pluginName;
         $this->setDefaultValue($defaultValue);
     }
@@ -86,6 +90,11 @@ abstract class Setting
     public function getName()
     {
         return $this->name;
+    }
+
+    public function getType()
+    {
+        return $this->type;
     }
 
     public function setConfigureCallback($callback)
@@ -108,7 +117,8 @@ abstract class Setting
         if ($this->configureCallback && !$this->config) {
             $this->config = new SettingConfig();
             call_user_func($this->configureCallback, $this->config);
-            $this->setDefaultTypeAndFieldIfNeeded($this->config);
+            $this->setUiControlIfNeeded($this->config);
+            $this->checkType($this->config);
         } else if (!$this->config) {
             return new SettingConfig();
         }
@@ -153,21 +163,7 @@ abstract class Setting
      */
     public function getValue()
     {
-        return $this->storage->getValue($this->key, $this->defaultValue);
-    }
-
-    /**
-     * Returns the previously persisted setting value. If no value was set, the default value
-     * is returned.
-     *
-     * @return mixed
-     * @throws \Exception If the current user is not allowed to change the value of this setting.
-     */
-    public function removeValue()
-    {
-        $this->checkHasEnoughWritePermission();
-
-        $this->storage->deleteValue($this->key);
+        return $this->storage->getValue($this->key, $this->defaultValue, $this->type);
     }
 
     /**
@@ -184,8 +180,8 @@ abstract class Setting
 
         if ($config->transform && $config->transform instanceof \Closure) {
             $value = call_user_func($config->transform, $value, $this);
-        } elseif (isset($config->type)) {
-            settype($value, $config->type);
+        } elseif (isset($this->type)) {
+            settype($value, $this->type);
         }
 
         $this->storage->setValue($this->key, $value);
@@ -235,18 +231,42 @@ abstract class Setting
         }
     }
 
-    private function setDefaultTypeAndFieldIfNeeded(SettingConfig $config)
+    private function setUiControlIfNeeded(SettingConfig $config)
     {
-        if (!isset($config->type)) {
-            $config->type = $config->getDefaultType($config->uiControl);
-        }
-
         if (!isset($config->uiControl)) {
-            $config->uiControl = $config->getDefaultUiControl($config->type);
+            $defaultControlTypes = array(
+                SettingConfig::TYPE_INT    => SettingConfig::UI_CONTROL_TEXT,
+                SettingConfig::TYPE_FLOAT  => SettingConfig::UI_CONTROL_TEXT,
+                SettingConfig::TYPE_STRING => SettingConfig::UI_CONTROL_TEXT,
+                SettingConfig::TYPE_BOOL   => SettingConfig::UI_CONTROL_CHECKBOX,
+                SettingConfig::TYPE_ARRAY  => SettingConfig::UI_CONTROL_MULTI_SELECT,
+            );
+
+            if (isset($defaultControlTypes[$this->type])) {
+                $config->uiControl = $defaultControlTypes[$this->type];
+            } else {
+                $config->uiControl = SettingConfig::UI_CONTROL_TEXT;
+            }
+        }
+    }
+
+    private function checkType(SettingConfig $config)
+    {
+        if ($config->uiControl === SettingConfig::UI_CONTROL_MULTI_SELECT &&
+            $this->type !== SettingConfig::TYPE_ARRAY) {
+            throw new Exception('Type must be an array when using a multi select');
         }
 
-        if ($config->uiControl === SettingConfig::UI_CONTROL_MULTI_SELECT) {
-            $config->type = SettingConfig::TYPE_ARRAY;
+        $types = array(
+            SettingConfig::TYPE_INT,
+            SettingConfig::TYPE_FLOAT,
+            SettingConfig::TYPE_STRING,
+            SettingConfig::TYPE_BOOL,
+            SettingConfig::TYPE_ARRAY
+        );
+
+        if (!in_array($this->type, $types)) {
+            throw new Exception('Type does not exist');
         }
     }
 

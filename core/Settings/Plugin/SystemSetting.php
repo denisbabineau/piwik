@@ -31,11 +31,12 @@ class SystemSetting extends Setting
      *
      * @param string $name The setting's persisted name.
      * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $type Eg an array, int, ... see TYPE_* constants
      * @param string $pluginName The name of the plugin the system setting belongs to.
      */
-    public function __construct($name, $defaultValue, $pluginName)
+    public function __construct($name, $defaultValue, $type, $pluginName)
     {
-        parent::__construct($name, $defaultValue, $pluginName);
+        parent::__construct($name, $defaultValue, $type, $pluginName);
 
         $factory = StaticContainer::get('Piwik\Settings\Storage\Factory');
         $this->storage = $factory->getPluginStorage($this->pluginName, $userLogin = '');

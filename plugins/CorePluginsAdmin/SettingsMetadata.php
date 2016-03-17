@@ -129,7 +129,7 @@ class SettingsMetadata
             'title' => Piwik::translate($config->title),
             'value' => $setting->getValue(),
             'defaultValue' => $setting->getDefaultValue(),
-            'type' => $config->type,
+            'type' => $setting->getType(),
             'uiControl' => $config->uiControl,
             'uiControlAttributes' => $config->uiControlAttributes,
             'availableValues' => $availableValues,

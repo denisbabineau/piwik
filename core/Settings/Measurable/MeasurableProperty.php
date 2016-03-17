@@ -33,17 +33,18 @@ class MeasurableProperty extends \Piwik\Settings\Setting
      *
      * @param string $name The persisted name of the setting.
      * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $type Eg an array, int, ... see TYPE_* constants
      * @param string $pluginName The name of the plugin the setting belongs to.
      * @param int $idSite The idSite this setting belongs to.
      * @throws Exception
      */
-    public function __construct($name, $defaultValue, $pluginName, $idSite)
+    public function __construct($name, $defaultValue, $type, $pluginName, $idSite)
     {
         if (!in_array($name, $this->allowedNames)) {
             throw new Exception(sprintf('Name "%s" is not allowed to be used with a MeasurableProperty, use a MeasurableSetting instead.', $name));
         }
 
-        parent::__construct($name, $defaultValue, $pluginName);
+        parent::__construct($name, $defaultValue, $type, $pluginName);
 
         $this->idSite = $idSite;
 

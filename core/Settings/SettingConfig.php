@@ -16,12 +16,6 @@ namespace Piwik\Settings;
  */
 class SettingConfig
 {
-    const TYPE_INT    = 'integer';
-    const TYPE_FLOAT  = 'float';
-    const TYPE_STRING = 'string';
-    const TYPE_BOOL   = 'boolean';
-    const TYPE_ARRAY  = 'array';
-
     const UI_CONTROL_RADIO    = 'radio';
     const UI_CONTROL_TEXT     = 'text';
     const UI_CONTROL_TEXTAREA = 'textarea';
@@ -31,15 +25,11 @@ class SettingConfig
     const UI_CONTROL_SINGLE_SELECT = 'select';
     const UI_CONTROL_HIDDEN = 'hidden';
 
-    /**
-     * Describes the setting's PHP data type. When saved, setting values will always be casted to this
-     * type.
-     *
-     * See {@link Piwik\Plugin\Settings} for a list of supported data types.
-     *
-     * @var string
-     */
-    public $type = null;
+    const TYPE_INT    = 'integer';
+    const TYPE_FLOAT  = 'float';
+    const TYPE_STRING = 'string';
+    const TYPE_BOOL   = 'boolean';
+    const TYPE_ARRAY  = 'array';
 
     /**
      * Describes what HTML element should be used to manipulate the setting through Piwik's UI.
@@ -160,41 +150,5 @@ class SettingConfig
      * @var string
      */
     public $showIf;
-
-    public function getDefaultType($controlType)
-    {
-        $defaultTypes = array(
-            static::UI_CONTROL_TEXT          => static::TYPE_STRING,
-            static::UI_CONTROL_TEXTAREA      => static::TYPE_STRING,
-            static::UI_CONTROL_PASSWORD      => static::TYPE_STRING,
-            static::UI_CONTROL_CHECKBOX      => static::TYPE_BOOL,
-            static::UI_CONTROL_MULTI_SELECT  => static::TYPE_ARRAY,
-            static::UI_CONTROL_RADIO         => static::TYPE_STRING,
-            static::UI_CONTROL_SINGLE_SELECT => static::TYPE_STRING,
-        );
-
-        if (isset($defaultTypes[$controlType])) {
-            return $defaultTypes[$controlType];
-        }
-
-        return static::TYPE_STRING;
-    }
-
-    public function getDefaultUiControl($type)
-    {
-        $defaultControlTypes = array(
-            static::TYPE_INT    => static::UI_CONTROL_TEXT,
-            static::TYPE_FLOAT  => static::UI_CONTROL_TEXT,
-            static::TYPE_STRING => static::UI_CONTROL_TEXT,
-            static::TYPE_BOOL   => static::UI_CONTROL_CHECKBOX,
-            static::TYPE_ARRAY  => static::UI_CONTROL_MULTI_SELECT,
-        );
-
-        if (isset($defaultControlTypes[$type])) {
-            return $defaultControlTypes[$type];
-        }
-
-        return static::UI_CONTROL_TEXT;
-    }
 
 }

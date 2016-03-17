@@ -50,9 +50,8 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 
     private function createMetricSetting()
     {
-        return $this->makeSetting('metric', $default = 'nb_visits', function (SettingConfig $config) {
+        return $this->makeSetting('metric', $default = 'nb_visits', SettingConfig::TYPE_STRING, function (SettingConfig $config) {
             $config->title = 'Metric to display';
-            $config->type = SettingConfig::TYPE_STRING;
             $config->uiControl = SettingConfig::UI_CONTROL_SINGLE_SELECT;
             $config->availableValues = array('nb_visits' => 'Visits', 'nb_actions' => 'Actions', 'visitors' => 'Visitors');
             $config->introduction = 'Only Super Users can change the following settings:';
@@ -64,9 +63,8 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     {
         $default = array('firefox', 'chromium', 'safari');
 
-        return $this->makeSetting('browsers', $default, function (SettingConfig $config) {
+        return $this->makeSetting('browsers', $default, SettingConfig::TYPE_ARRAY, function (SettingConfig $config) {
             $config->title = 'Supported Browsers';
-            $config->type = SettingConfig::TYPE_ARRAY;
             $config->uiControl = SettingConfig::UI_CONTROL_MULTI_SELECT;
             $config->availableValues = array('firefox' => 'Firefox', 'chromium' => 'Chromium', 'safari' => 'safari');
             $config->description = 'The value will be only displayed in the following browsers';
@@ -77,7 +75,7 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
     {
         $default = "This is the value: \nAnother line";
 
-        return $this->makeSetting('description', $default, function (SettingConfig $config) {
+        return $this->makeSetting('description', $default, SettingConfig::TYPE_STRING, function (SettingConfig $config) {
             $config->title = 'Description for value';
             $config->uiControl = SettingConfig::UI_CONTROL_TEXTAREA;
             $config->description = 'This description will be displayed next to the value';
@@ -86,7 +84,7 @@ class SystemSettings extends \Piwik\Settings\Plugin\SystemSettings
 
     private function createPasswordSetting()
     {
-        return $this->makeSetting('password', $default = null, function (SettingConfig $config) {
+        return $this->makeSetting('password', $default = null, SettingConfig::TYPE_STRING, function (SettingConfig $config) {
             $config->title = 'API password';
             $config->uiControl = SettingConfig::UI_CONTROL_PASSWORD;
             $config->description = 'Password for the 3rd API where we fetch the value';

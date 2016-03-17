@@ -35,13 +35,14 @@ class UserSetting extends Setting
      *
      * @param string $name The setting's persisted name.
      * @param mixed $defaultValue  Default value for this setting if no value was specified.
+     * @param string $type Eg an array, int, ... see TYPE_* constants
      * @param string $pluginName The name of the plugin the setting belongs to
      * @param string $userLogin The name of the user the value should be set or get for
      * @throws Exception
      */
-    public function __construct($name, $defaultValue, $pluginName, $userLogin)
+    public function __construct($name, $defaultValue, $type, $pluginName, $userLogin)
     {
-        parent::__construct($name, $defaultValue, $pluginName);
+        parent::__construct($name, $defaultValue, $type, $pluginName);
 
         if (empty($userLogin)) {
             throw new Exception('No userLogin given');

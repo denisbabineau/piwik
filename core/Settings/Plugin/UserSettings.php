@@ -36,11 +36,11 @@ abstract class UserSettings extends Settings
         $this->init();
     }
 
-    protected function makeSetting($name, $defaultValue, $configureCallback)
+    protected function makeSetting($name, $defaultValue, $type, $configureCallback)
     {
         $userLogin = Piwik::getCurrentUserLogin();
 
-        $setting = new UserSetting($name, $defaultValue, $this->pluginName, $userLogin);
+        $setting = new UserSetting($name, $defaultValue, $type, $this->pluginName, $userLogin);
         $setting->setConfigureCallback($configureCallback);
 
         $this->addSetting($setting);
